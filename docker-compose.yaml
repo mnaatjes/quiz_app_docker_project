@@ -1,9 +1,10 @@
 version: '3.8'
 services:
-  image: httpd:latest  # uses official Apache HTTP Image
-  container-name: quiz-app
-  ports: 
-    - "8080:80"
-  volumes: 
-    - ./html:/usr/local/apache2/htdocs/ # Mount local html directory to document root
-  restart: unless-stopped
+  web:
+    image: httpd:latest  # uses official Apache HTTP Image
+    container_name: quiz-app
+    ports: 
+      - "8080:80"
+    volumes: 
+      - ./html:/usr/local/apache2/htdocs/ # Mount local html directory to document root
+    restart: unless-stopped
