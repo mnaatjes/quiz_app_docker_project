@@ -7,11 +7,13 @@ services:
     ports: 
       - "8080:80"
     volumes: 
-      - ./html:/usr/local/apache2/htdocs/ # Mount local html directory to document root
+      - ./public:/usr/local/apache2/htdocs/ # Mount local html directory to document root
       - ./apache/httpd.conf:/usr/local/apache2/conf/httpd.conf # Mount custom Apache conf file
     depends_on:
-      - php
-      #- db
+      php: 
+        condition: service_started
+      db: 
+        condition: service_healthy
     restart: unless-stopped
   
   # PHP-FPM Service
@@ -20,7 +22,9 @@ services:
     container_name: quiz-app-php
     volumes:
       # Mount same html direcory to PHP-FPM Document Root
-      - ./html:/var/www/html 
+      - ./public:/var/www/html # Main public directory
+      - ./app:/var/www/app # Add application directory to php 
+      - ./tests:/app/tests # Testing Environment
     restart: unless-stopped
 
   # Database Service
@@ -33,11 +37,32 @@ services:
       MYSQL_USER: gemini
       MYSQL_PASSWORD: sql_password
     volumes:
-      - ./db_data:/var/lib/mysql
+      - ./db_data:/var/lib/mysql 
     healthcheck: # <--- NEW HEALTHCHECK CONFIGURATION
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-ppassword"]
       interval: 5s
       timeout: 10s
       retries: 5
       start_period: 20s # Give MySQL time to initialize before checking
+    restart: unless-stopped
+
+  # phpMyAdmin Service
+  phpmyadmin: 
+    image: phpmyadmin/phpmyadmin
+    container_name: quiz-app-phpmyadmin
+    ports: 
+      - "8081:80"
+    environment:
+      # phpMyAdmin Environment DB
+      PMA_HOST: db
+      PMA_PORT: 3306
+      # phpMyAdmin Configuration Storage Settings
+      PMA_PMADB: pma 
+      PMA_CONTROLHOST: db
+      PMA_CONTROLPORT: 3306
+      PMA_CONTROLUSER: root
+      PMA_CONTROLPASS: password
+    depends_on:
+      db:
+        condition: service_healthy
     restart: unless-stopped

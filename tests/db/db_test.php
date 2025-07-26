@@ -1,6 +1,4 @@
 <?php
-// /html/connect_db.php (example)
-
 $servername = "db"; // The service name of your MySQL container
 $username = "gemini"; // The user defined in docker-compose.yml
 $password = "sql_password"; // The password defined in docker-compose.yml
