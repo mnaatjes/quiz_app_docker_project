@@ -16,10 +16,28 @@ services:
   
   # PHP-FPM Service
   php:
-    image: php:8.2-fpm
+    build: ./php-fpm
     container_name: quiz-app-php
     volumes:
       # Mount same html direcory to PHP-FPM Document Root
       - ./html:/var/www/html 
     restart: unless-stopped
 
+  # Database Service
+  db: 
+    image: mysql:8.0
+    container_name: quiz-app-db
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: quiz_db
+      MYSQL_USER: gemini
+      MYSQL_PASSWORD: sql_password
+    volumes:
+      - ./db_data:/var/lib/mysql
+    healthcheck: # <--- NEW HEALTHCHECK CONFIGURATION
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-ppassword"]
+      interval: 5s
+      timeout: 10s
+      retries: 5
+      start_period: 20s # Give MySQL time to initialize before checking
+    restart: unless-stopped
