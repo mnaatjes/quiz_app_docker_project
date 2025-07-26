@@ -1,10 +1,25 @@
 version: '3.8'
 services:
+  # Apache Web Server Service
   web:
     image: httpd:latest  # uses official Apache HTTP Image
-    container_name: quiz-app
+    container_name: quiz-app-web
     ports: 
       - "8080:80"
     volumes: 
       - ./html:/usr/local/apache2/htdocs/ # Mount local html directory to document root
+      - ./apache/httpd.conf:/usr/local/apache2/conf/httpd.conf # Mount custom Apache conf file
+    depends_on:
+      - php
+      #- db
     restart: unless-stopped
+  
+  # PHP-FPM Service
+  php:
+    image: php:8.2-fpm
+    container_name: quiz-app-php
+    volumes:
+      # Mount same html direcory to PHP-FPM Document Root
+      - ./html:/var/www/html 
+    restart: unless-stopped
+
