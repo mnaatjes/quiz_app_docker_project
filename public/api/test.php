@@ -11,7 +11,7 @@
      */
     $router = new Router();
     
-    $router->get('/banana', function($req, $res){
+    $router->get('', function($req, $res){
         $res->addHeader("Content-Type", "application/json");
         $res->setBody("I Am A Banana");
         $res->send();
