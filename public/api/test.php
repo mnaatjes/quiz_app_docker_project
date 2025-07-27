@@ -18,7 +18,7 @@
          */
         $dbConfig = require('/var/www/app/config/db_config.php');
         $res->addHeader("Content-Type", "application/json");
-        $res->setBody(json_encode(db_connect($dbConfig, "Select MAX(PID) FROM categories"), JSON_PRETTY_PRINT));
+        $res->setBody(json_encode(db_connect($dbConfig, "Select MAX(QID) FROM categories"), JSON_PRETTY_PRINT));
         $res->send();
     });
 
