@@ -31,20 +31,26 @@
         public $updated_at;
         public $is_active;
         public $last_login_at;
+
         /**
-         * Fill: populates properties from data array
+         * Create User
          * 
-         * @param array $data Assoc array of user data
-         * @return void
          */
-        protected function fill(array $data): void {
+        public function createUser($data){
+            
             /**
-             * Check if Array property exists and populate in Object
+             * TODO: Validate
              */
-            foreach ($data as $key => $value) {
-                if (property_exists($this, $key)) {
-                    $this->$key = $value;
-                }
-            }
+
+            /**
+             * Fill Data
+             */
+            parent::fill($data);
+
+            /**
+             * Perform Save
+             */
+            parent::save();
+
         }
     }

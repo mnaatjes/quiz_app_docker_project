@@ -33,6 +33,17 @@
      * @var object User
      */
     $user = new UserModel($pdo);
-    var_dump($user->getAll());
+    var_dump($user->createUser([
+        'id' => null,
+        'username' => 'newuser123',
+        'email' => 'newuser@example.com',
+        'password_hash' => password_hash('securepassword123', PASSWORD_DEFAULT),
+        'first_name' => 'John',
+        'last_name' => 'Doe',
+        'created_at' => date('Y-m-d H:i:s'),
+        'updated_at' => date('Y-m-d H:i:s'),
+        'is_active' => 1,
+        'last_login_at' => null
+    ]));
 
 ?>
