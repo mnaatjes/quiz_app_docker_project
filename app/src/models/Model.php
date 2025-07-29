@@ -9,7 +9,7 @@ abstract class Model
     /**
      * @var PDO The PDO database connection object.
      */
-    protected static $db;
+    private static $db;
 
     /**
      * @var string The name of the database table associated with the model.
@@ -36,7 +36,7 @@ abstract class Model
          * - Assign to static $db property
          */
         if ($db !== null) {
-            self::$db = $db;
+            static::$db = $db;
         } else {
             throw new Exception('Model could not connect to DB!');
         }
@@ -44,15 +44,31 @@ abstract class Model
 
     /**-------------------------------------------------------------------------*/
     /**
-     * Sets the PDO database connection for all models.
-     * This should typically be called once at application bootstrap.
-     *
-     * @param PDO $db The PDO database connection object.
+     * CRUD Method: Get record by Primary Key
      */
     /**-------------------------------------------------------------------------*/
-    public static function setDb(PDO $db): void
-    {
-        self::$db = $db;
+    public function get(){
+        /**
+         * Validate PKEY and Value
+         */
+        if(!isset(static::$p_key)){
+            throw new Exception("Missing Primary Key definition!");
+        }
+        if(is_null($this->{static::$p_key})){
+            throw new Exception("Primary Key: " . static::$p_key. " has no value!");
+        }
+
+        /**
+         * Form query and execute
+         */
+        $sql = "SELECT * FROM " . static::$table_name . " WHERE ". static::$p_key ." = :id";
+        $stmt = static::$db->prepare($sql);
+        $stmt->execute([static::$p_key => $this->{static::$p_key}]);
+        
+        /**
+         * Return Record
+         */
+        return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
     /**-------------------------------------------------------------------------*/
@@ -70,7 +86,7 @@ abstract class Model
          * Form Query and Request Records
          */
         $records = [];
-        $stmt    = self::$db->query("SELECT * FROM " . static::$table_name);
+        $stmt    = static::$db->query("SELECT * FROM " . static::$table_name);
         $records = $stmt->fetchAll(PDO::FETCH_ASSOC);
         /**
          * Return Assoc Array
@@ -87,16 +103,116 @@ abstract class Model
      * @property array $props Object model properties
      */
     /**-------------------------------------------------------------------------*/
-    public function save(){
+    protected function save(): bool{
 
         /**
-         * TODO: Validate DB and Table
+         * TODO: Validate DB and Table and PKEY
          */
 
         /**
          * Get properties from Model
          */
-        self::getProps();
+        $props = $this->getProps();
+
+        /**
+         * TODO: Check if empty
+         */
+
+        /**
+         * Evaluate INSERT or UPDATE
+         */
+        if(isset($this->{static::$p_key})){
+            /**
+             * UPDATE
+             */
+            return $this->update($props);
+        } else {
+            /**
+             * INSERT
+             */
+            return $this->insert($props);
+        }
+
+        /**
+         * Return Default
+         */
+        return false;
+    }
+    /**-------------------------------------------------------------------------*/
+    /**
+     * DB Method: Inserts a new record into the database.
+     *
+     * @param array $properties The properties to insert.
+     * @return bool True on success, false on failure.
+     */
+    /**-------------------------------------------------------------------------*/
+    private function insert(array $properties): bool {
+        $columns = implode(', ', array_keys($properties));
+        $placeholders = ':' . implode(', :', array_keys($properties));
+
+        $sql = "INSERT INTO " . static::$table_name . " ({$columns}) VALUES ({$placeholders})";
+        $stmt = static::$db->prepare($sql);
+
+        foreach ($properties as $key => $value) {
+            $stmt->bindValue(':' . $key, $value);
+        }
+
+        $result = $stmt->execute();
+        if ($result && static::$db->lastInsertId()) {
+            $this->{static::$p_key} = static::$db->lastInsertId();
+        }
+        /**
+         * Return Boolean
+         */
+        return $result;
+    }
+
+    /**-------------------------------------------------------------------------*/
+    /**
+     * DB Method: Updates an existing record into the database
+     * 
+     * @param array $properties The properties to update.
+     * @return bool True on success, false on failure.
+     */
+    /**-------------------------------------------------------------------------*/
+    protected function update(array $properties): bool {
+        $fields = [];
+        foreach ($properties as $key => $_) {
+            // Skip primary key
+            if($key === static::$p_key){
+                continue;
+            } else {
+                // Apply fields and placeholders
+                $fields[] = "{$key} = :{$key}";
+            }
+        }
+        /**
+         * Collapse clauses into string
+         */
+        $setClause = implode(', ', $fields);
+
+        $sql    = "UPDATE " . static::$table_name . " SET {$setClause} WHERE `" . static::$p_key . "` = :" . static::$p_key;
+        $stmt   = self::$db->prepare($sql);
+
+        foreach ($properties as $key => $value) {
+            // Skip p key
+            if($key === static::$p_key){
+                continue;
+            } else {
+                // Bind Values
+                $stmt->bindValue(':' . $key, $value);
+            }
+        }
+
+        /**
+         * Bind primary key to value
+         */
+        $stmt->bindValue(':' . static::$p_key, $this->{static::$p_key});
+
+        /**
+         * Return update result
+         */
+        return $stmt->execute();
     }
 
     /**-------------------------------------------------------------------------*/
@@ -112,8 +228,17 @@ abstract class Model
          * @var array $results
          */
         $results = get_object_vars($this);
-
-        var_dump($results);
+        /**
+         * Unset unneccessary keys
+         * - Strip Primary Key
+         * - Strip DB object
+         */
+        if(property_exists($this, 'p_key')){
+            unset($results['p_key']);
+        }
+        if(property_exists($this, 'db')){
+            unset($results['db']);
+        }
         /**
          * Return results
          */

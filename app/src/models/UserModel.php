@@ -4,6 +4,7 @@
      */
     require_once('/var/www/app/src/models/Model.php');
 
+    /**-------------------------------------------------------------------------*/
     /**
      * User Model
      * 
@@ -12,6 +13,7 @@
      * @since 1.0:
      *      
      */
+    /**-------------------------------------------------------------------------*/
     class UserModel extends Model{
         /**
          * Model Properties
@@ -32,10 +34,41 @@
         public $is_active;
         public $last_login_at;
 
+        /**-------------------------------------------------------------------------*/
+        /**
+         * Load User
+         */
+        /**-------------------------------------------------------------------------*/
+        public function loadUser(): bool{
+            /**
+             * Run get()
+             */
+            $result = $this->get();
+            
+            /**
+             * Verify Result
+             */
+            if(empty($result)){
+                throw new Exception("Unable to find User!");
+            }
+
+            /**
+             * Fill model object
+             */
+            $this->fill($result);
+
+            /**
+             * Return Default
+             */
+            return true;
+        }
+
+        /**-------------------------------------------------------------------------*/
         /**
          * Create User
          * 
          */
+        /**-------------------------------------------------------------------------*/
         public function createUser($data){
             
             /**
@@ -45,12 +78,26 @@
             /**
              * Fill Data
              */
-            parent::fill($data);
+            $this->fill($data);
+            /**
+             * Perform Save and Return results
+             */
+            return $this->save();
+        }
+
+        /**-------------------------------------------------------------------------*/
+        /**
+         * Update User
+         */
+        /**-------------------------------------------------------------------------*/
+        public function updateUser(){
+            /**
+             * TODO: Validate
+             */
 
             /**
-             * Perform Save
+             * Perform Save and return
              */
-            parent::save();
-
+            return $this->save();
         }
     }
