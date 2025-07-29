@@ -4,10 +4,11 @@
      * Database Connect
      * 
      * @param array $config
-     * @param string $query
+     * 
+     * @return PDO|NULL
      * 
      */
-    function db_connect($config, $query){
+    function db_connect($config){
 
         /**
          * @var string $dsn Data Source Name
@@ -22,23 +23,13 @@
              * @var object $pdo
              */
             $pdo = new PDO($dsn, $config['user'], $config['password'], $config['options']);
-
+            
             /**
-             * @var object $stmt Prepares Query
+             * Check empty
              */
-            $stmt = $pdo->query($query);
-
-            /**
-             * @var array $records Results from query
-             */
-            $records = $stmt->fetchAll();
-
-            /**
-             * Close PDO connection
-             * Return Results
-             */
-            $pdo = null;
-            return $records;
+            if(!is_null($pdo)){
+                return $pdo;
+            }
 
         } catch (PDOException $err){
             /**
@@ -46,6 +37,4 @@
              */
             return $err;
         }
-
-        return $dsn;
     }
