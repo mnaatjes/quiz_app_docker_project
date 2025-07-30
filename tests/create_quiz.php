@@ -86,6 +86,6 @@
         "cat"   => 6
     ];
 
-    $quiz->generateQuiz(8, 1, $user->id);
+    $quiz->packArr([5744,52056,97421,137430]);
 
 ?>
