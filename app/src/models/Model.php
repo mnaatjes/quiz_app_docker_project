@@ -29,8 +29,7 @@ abstract class Model
      * @param PDO|null $db Optional PDO connection object.
      */
     /**-------------------------------------------------------------------------*/
-    public function __construct(?PDO $db = null)
-    {
+    public function __construct(?PDO $db = null){
         /**
          * Check for DB Connection or Create It:
          * - Assign to static $db property
@@ -41,6 +40,44 @@ abstract class Model
             throw new Exception('Model could not connect to DB!');
         }
     }
+
+    /**-------------------------------------------------------------------------*/
+    /**
+     * CRUD Method: Get record by Primary Key and Load it into object
+     */
+    /**-------------------------------------------------------------------------*/
+    public function load($id=null): bool{
+        /**
+         * Check for $id definition
+         */
+        if(is_null($this->{static::$p_key}) && is_null($id)){
+            throw new Exception("Primary Key value is undefined!");
+        } else if(!is_null($id)){
+            $this->{static::$p_key} = $id;
+        }
+        /**
+         * Perform Request
+         */
+        $results = $this->get();
+
+        /**
+         * Verify and return
+         */
+        if(empty($results)){
+            throw new Exception("Unable to find record by provided id");
+        }
+
+        /**
+         * Fill properties
+         */
+        $this->fill($results);
+
+        /**
+         * Return
+         */
+        return true;
+    }
+
 
     /**-------------------------------------------------------------------------*/
     /**
@@ -70,6 +107,75 @@ abstract class Model
          */
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
+    /**-------------------------------------------------------------------------*/
+    /**
+     * CRUD Method: Get record by Primary Key
+     */
+    /**-------------------------------------------------------------------------*/
+    public function getById($id){
+        /**
+         * Validate PKEY and Value
+         */
+        if(!isset(static::$p_key)){
+            throw new Exception("Missing Primary Key definition!");
+        }
+        if(is_null($this->{static::$p_key})){
+            throw new Exception("Primary Key: " . static::$p_key. " has no value!");
+        }
+
+        /**
+         * Form query and execute
+         */
+        $sql = "SELECT * FROM " . static::$table_name . " WHERE ". static::$p_key ." = :id";
+        $stmt = static::$db->prepare($sql);
+        $stmt->execute([static::$p_key => $id]);
+        
+        /**
+         * Return Record
+         */
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+
+    /**-------------------------------------------------------------------------*/
+    /**
+     * CRUD Method: Returns specific property by associated ID
+     */
+    /**-------------------------------------------------------------------------*/
+    public function getProp($id, $prop_name){
+        /**
+         * TODO: Validate $id
+         */
+        
+
+        /**
+         * Check $prop name exists
+         */
+        if(!property_exists($this, $prop_name)){
+            throw new Exception("Unable to find ". $prop_name ." in Object!");
+        }
+
+        /**
+         * Form Query
+         */
+        $result     = null;
+        $sql        = "SELECT " . $prop_name . " FROM " . static::$table_name . " WHERE " . static::$p_key . " = :" . static::$p_key;
+        $stmt       = static::$db->prepare($sql);
+        /**
+         * Bind P Key value
+         */
+        $stmt->bindParam(static::$p_key, $id);
+        $stmt->execute();
+        /**
+         * Fetch Column and Validate Result
+         */
+        $result = $stmt->fetchColumn();
+
+        /**
+         * Return Property
+         */
+        return $result;
+
+    }
 
     /**-------------------------------------------------------------------------*/
     /**
@@ -92,6 +198,15 @@ abstract class Model
          * Return Assoc Array
          */
         return $records;
+    }
+
+    /**-------------------------------------------------------------------------*/
+    /**
+     * CRUD Method: Get All Records
+     */
+    /**-------------------------------------------------------------------------*/
+    public function list(){
+        return $this->getAll();
     }
     /**-------------------------------------------------------------------------*/
     /**

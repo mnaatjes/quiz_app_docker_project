@@ -10,6 +10,8 @@
      * Require Models, Controllers, and other Objects
      */
     require_once('/var/www/app/src/models/UserModel.php');
+    require_once('/var/www/app/src/models/DifficultyModel.php');
+    require_once('/var/www/app/src/models/QuizModel.php');
     /**
      * Enable Utilities
      */
@@ -33,10 +35,12 @@
      * @var object User
      */
     $user = new UserModel($pdo);
+    $diff = new DiffModel($pdo);
+    $quiz = new QuizModel($pdo);
 
     /**
      * Debugging
      */
-    
+    $diff->getProp(1, "name");
 
 ?>
