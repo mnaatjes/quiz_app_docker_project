@@ -41,6 +41,6 @@
     /**
      * Debugging
      */
-    $diff->getProp(1, "name");
+    var_dump($diff->getProp(4, "description"));
 
 ?>
