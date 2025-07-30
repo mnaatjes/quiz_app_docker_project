@@ -9,21 +9,28 @@
      * Difficulties Model
      */
     /**-------------------------------------------------------------------------*/
-    class DiffModel extends Model {
+    class CategoryModel extends Model {
         /**
          * Model Properties
          */
-        protected static $table_name = 'difficulties';
+        protected static $table_name = 'categories';
         protected static $p_key = 'id';
         /**
-         * Difficulties Object Properties
+         * Object Properties
          */
         public $id;
         public $name;
-        public $level_value;
+        public $quiz_id;
         public $description;
+        public $slug;
+        public $image_url;
+        public $icon_name;
+        public $sort_order;
+        public $is_active;
         public $created_at;
         public $updated_at;
+        public $parent_category_id;
+        public $selection_count;
 
         /**-------------------------------------------------------------------------*/
         /**
@@ -39,7 +46,7 @@
             /**
              * Form Query
              */
-            $sql    = "SELECT " . static::$p_key . ", name, level_value, description FROM " . static::$table_name;
+            $sql    = "SELECT " . static::$p_key . ", name, description, slug, image_url, icon_name FROM " . static::$table_name . " WHERE is_active = 1";
             $stmt   = self::$db->prepare($sql);
 
             /**
@@ -54,4 +61,3 @@
             return $results;
         }
     }
-    

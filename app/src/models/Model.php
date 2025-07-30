@@ -9,7 +9,7 @@ abstract class Model
     /**
      * @var PDO The PDO database connection object.
      */
-    private static $db;
+    protected static $db;
 
     /**
      * @var string The name of the database table associated with the model.
