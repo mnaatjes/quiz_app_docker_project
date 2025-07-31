@@ -2,6 +2,7 @@
     /**
      * Require Model Abstract
      */
+    //require_once('/var/www/app/utils/math_nCr.php');
     require_once('/var/www/app/src/models/Model.php');
 
     /**-------------------------------------------------------------------------*/
@@ -41,11 +42,13 @@
         /**-------------------------------------------------------------------------*/
         /**
          * Grabs records that correspond to criteria
+         * - Questions are selected at random within criteria
+         * - Questions are sorted by ID ASC
          * 
          * @return array
          */
         /**-------------------------------------------------------------------------*/
-        public static function pullQuestions($cat_id, $diff_id, $quiz_length, $user_id){
+        public static function pullQuestions($cat_id, $diff_id, $quiz_length){
             /**
              * @var array $questions Records from questions table
              */
@@ -76,6 +79,10 @@
             if(empty($questions)){
                 throw new Exception("Unable to list questions that matches Criteria");
             }
+            /**
+             * Sort Question IDs ASC
+             */
+            asort($questions);
 
             /**
              * @var array $results
@@ -109,5 +116,27 @@
              * Return results
              */
             return $results;
+        }
+
+        /**-------------------------------------------------------------------------*/
+        /**
+         * Count Distinct Questions
+         */
+        /**-------------------------------------------------------------------------*/
+        public static function countDistinct($category_id, $difficulty_id, $group_size){
+            /**
+             * Count floor by limit with properties:
+             * - Form SQL
+             * - Bind Properties
+             * - Execute and return
+             */
+            $sql    = "SELECT FLOOR(COUNT(*) / ". $group_size .") AS distinct_groups_of_10 FROM questions WHERE category_id = :category_id AND difficulty_id = :difficulty_id";
+            $stmt   = static::$db->prepare($sql);
+            // Bind
+            $stmt->bindValue(':category_id', $category_id, PDO::PARAM_INT);
+            $stmt->bindValue(':difficulty_id', $difficulty_id, PDO::PARAM_INT);
+            // Execute
+            $stmt->execute();
+            return (int) $stmt->fetchColumn();
         }
     }

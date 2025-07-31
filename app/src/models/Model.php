@@ -44,6 +44,12 @@ abstract class Model
     /**-------------------------------------------------------------------------*/
     /**
      * CRUD Method: Get record by Primary Key and Load it into object
+     * 
+     * TODO: Confusing
+     * TODO: Remove DB Interaction portion
+     * TODO: Remove, redundant by static::fill()
+     * @depreciated
+     * @see static::fill
      */
     /**-------------------------------------------------------------------------*/
     public function load($id=null): bool{
@@ -82,6 +88,9 @@ abstract class Model
     /**-------------------------------------------------------------------------*/
     /**
      * CRUD Method: Get record by Primary Key
+     * 
+     * TODO: Redundant!
+     * @see getById()
      */
     /**-------------------------------------------------------------------------*/
     public function get(){
@@ -110,6 +119,9 @@ abstract class Model
     /**-------------------------------------------------------------------------*/
     /**
      * CRUD Method: Get record by Primary Key
+     * 
+     * TODO: Make static
+     * TODO: Make protected
      */
     /**-------------------------------------------------------------------------*/
     public function getById($id){
@@ -139,6 +151,9 @@ abstract class Model
     /**-------------------------------------------------------------------------*/
     /**
      * CRUD Method: Returns specific property by associated ID
+     * 
+     * TODO: Make static
+     * TODO: Make protected
      */
     /**-------------------------------------------------------------------------*/
     public function getProp($id, $prop_name){
@@ -180,6 +195,9 @@ abstract class Model
     /**-------------------------------------------------------------------------*/
     /**
      * CRUD Method: Get All Records
+     * 
+     * TODO: Make static
+     * TODO: Make protected
      */
     /**-------------------------------------------------------------------------*/
     public function getAll(): array {
@@ -203,32 +221,162 @@ abstract class Model
     /**-------------------------------------------------------------------------*/
     /**
      * CRUD Method: Get All Records
+     * 
+     * TODO: Make static
+     * TODO: Make protected
      */
     /**-------------------------------------------------------------------------*/
     public function list(){
         return $this->getAll();
     }
+
+    /**-------------------------------------------------------------------------*/
+    /**
+     * Count by Properties
+     * 
+     * @return int Count from provided query
+     */
+    /**-------------------------------------------------------------------------*/
+    public static function countByProps(array $properties=[]): ?int{
+        /**
+         * Evaluate Properties
+         */
+        if(empty($properties)){
+            /**
+             * Form Simple SQL
+             */
+            $sql = "SELECT COUNT(*) FROM ".static::$table_name;
+
+        } else {
+            /**
+             * Form Clauses
+             */
+            foreach ($properties as $key => $value) {
+                $conditions[] = "`{$key}` = :{$key}";
+                $bindValues[":{$key}"] = $value;
+            }
+
+            $whereClause = implode(' AND ', $conditions);
+            /**
+             * Form SQL
+             */
+            $sql = "SELECT COUNT(*) FROM ".static::$table_name." WHERE ". $whereClause;
+        }
+        /**
+         * Prepare Query
+         */
+        $stmt = static::$db->prepare($sql);
+        
+        foreach ($bindValues as $placeholder => $val) {
+            // Determine the PDO parameter type
+            $paramType = PDO::PARAM_STR; // Default to string
+            if (is_int($val)) {
+                $paramType = PDO::PARAM_INT;
+            } elseif (is_bool($val)) {
+                $paramType = PDO::PARAM_BOOL;
+            } elseif (is_null($val)) {
+                $paramType = PDO::PARAM_NULL;
+            }
+            $stmt->bindValue($placeholder, $val, $paramType);
+        }
+
+        $stmt->execute();
+
+        /**
+         * Execute and return result
+         */
+        return (int) $stmt->fetchColumn();
+    }
+    
+    /**-------------------------------------------------------------------------*/
+    /**
+     * CRUD Method: Record Exists in table by ID
+     * 
+     * @param int $id
+     * 
+     * @return bool 
+     */
+    /**-------------------------------------------------------------------------*/
+    protected function exists($id){
+        /**
+         * Form SQL
+         */
+        $sql    = "SELECT 1 FROM ".static::$table_name." WHERE ".static::$p_key." = :".static::$p_key." LIMIT 1";
+        $stmt   = static::$db->prepare($sql);
+        /**
+         * Bind id
+         */
+        $stmt->bindParam(":".static::$p_key, $id, PDO::PARAM_INT);
+        $stmt->execute();
+
+        /**
+         * Fetch and return boolean
+         */
+        return (bool)$stmt->fetch();
+    }
+
+    /**-------------------------------------------------------------------------*/
+    /**
+     * CRUD Method: Record Exists in table by ID
+     * 
+     * @param int $f_key
+     * @param string $f_key_name
+     * 
+     * @return bool 
+     * 
+     * TODO: Make static
+     * TODO: Change param to assoc array for multiple foreign keys
+     */
+    /**-------------------------------------------------------------------------*/
+    protected static function existsByFkey(array $f_keys){
+
+    }
+
+    /**-------------------------------------------------------------------------*/
+    /**
+     * CRUD Method: Record Exists in table by ID
+     * 
+     * @param int $f_key
+     * @param string $f_key_name
+     * 
+     * @return bool 
+     * 
+     * TODO: Make static
+     * TODO: Change param to assoc array for multiple foreign keys
+     */
+    /**-------------------------------------------------------------------------*/
+    public function _existsByFk($f_key, $f_key_name){
+        /**
+         * Form SQL
+         */
+        $sql    = "SELECT 1 FROM ".static::$table_name." WHERE ".$f_key_name." = :".$f_key." LIMIT 1";
+        $stmt   = static::$db->prepare($sql);
+        /**
+         * Bind Properties
+         */
+        $stmt->bindParam(":".$f_key_name, $f_key, PDO::PARAM_INT);
+        $stmt->execute();
+
+        /**
+         * Fetch and return boolean
+         */
+        return (bool)$stmt->fetch();
+    }
+
     /**-------------------------------------------------------------------------*/
     /**
      * CRUD Method: Save
      * 
      * Saves the current Model instance to the DB
      * 
-     * @param void
-     * @property array $props Object model properties
+     * @param array $properties Columns and values to save to
+     * @param ?int $id Primary Key Value for Update
+     * 
+     * @return bool|int Bool on unsuccessful / Update | Int on success, represents lastInsertID()
+     * 
      */
     /**-------------------------------------------------------------------------*/
-    protected function save(): bool{
-
-        /**
-         * TODO: Validate DB and Table and PKEY
-         */
-
-        /**
-         * Get properties from Model
-         */
-        $props = $this->getProps();
-
+    protected static function save(array $properties, ?int $id=NULL): bool{
         /**
          * TODO: Check if empty
          */
@@ -236,16 +384,16 @@ abstract class Model
         /**
          * Evaluate INSERT or UPDATE
          */
-        if(isset($this->{static::$p_key})){
+        if(!is_null($id)){
             /**
              * UPDATE
              */
-            return $this->update($props);
+            return static::update($id, $properties);
         } else {
             /**
              * INSERT
              */
-            return $this->insert($props);
+            return static::insert($properties);
         }
 
         /**
@@ -258,26 +406,40 @@ abstract class Model
      * DB Method: Inserts a new record into the database.
      *
      * @param array $properties The properties to insert.
-     * @return bool True on success, false on failure.
+     * @return bool|int False on failure; Last insert ID on success
+     * 
      */
     /**-------------------------------------------------------------------------*/
-    private function insert(array $properties): bool {
+    protected static function insert(array $properties): bool {
+        /**
+         * Create Columns
+         */
         $columns = implode(', ', array_keys($properties));
         $placeholders = ':' . implode(', :', array_keys($properties));
 
+        /**
+         * Form SQL Statement
+         */
         $sql = "INSERT INTO " . static::$table_name . " ({$columns}) VALUES ({$placeholders})";
         $stmt = static::$db->prepare($sql);
 
+        /**
+         * Bind Properties
+         */
         foreach ($properties as $key => $value) {
             $stmt->bindValue(':' . $key, $value);
         }
 
+        /**
+         * Execute and evaluate result
+         */
         $result = $stmt->execute();
         if ($result && static::$db->lastInsertId()) {
-            $this->{static::$p_key} = static::$db->lastInsertId();
+            $result = static::$db->lastInsertId();
         }
+
         /**
-         * Return Boolean
+         * Return Default Boolean | ID of last insert
          */
         return $result;
     }
@@ -286,11 +448,15 @@ abstract class Model
     /**
      * DB Method: Updates an existing record into the database
      * 
+     * @param int $id
      * @param array $properties The properties to update.
      * @return bool True on success, false on failure.
      */
     /**-------------------------------------------------------------------------*/
-    protected function update(array $properties): bool {
+    protected static function update($id, array $properties): bool {
+        /**
+         * Render Fields
+         */
         $fields = [];
         foreach ($properties as $key => $_) {
             // Skip primary key
@@ -305,10 +471,16 @@ abstract class Model
          * Collapse clauses into string
          */
         $setClause = implode(', ', $fields);
-
-        $sql    = "UPDATE " . static::$table_name . " SET {$setClause} WHERE `" . static::$p_key . "` = :" . static::$p_key;
+        /**
+         * Render SQL Statement
+         */
+        var_dump(static::$p_key);
+        $sql    = "UPDATE " . static::$table_name . " SET {$setClause} WHERE `". static::$p_key."` = :".static::$p_key;
         $stmt   = self::$db->prepare($sql);
 
+        /**
+         * Assign properties and bind
+         */
         foreach ($properties as $key => $value) {
             // Skip p key
             if($key === static::$p_key){
@@ -322,10 +494,10 @@ abstract class Model
         /**
          * Bind primary key to value
          */
-        $stmt->bindValue(':' . static::$p_key, $this->{static::$p_key});
+        $stmt->bindValue(':' . static::$p_key, $id, PDO::PARAM_INT);
 
         /**
-         * Return update result
+         * Return boolean from update
          */
         return $stmt->execute();
     }
@@ -336,6 +508,7 @@ abstract class Model
      * 
      * @property void
      * @return array Assoc Array of property key => values
+     * 
      */
     /**-------------------------------------------------------------------------*/
     protected function getProps(): array {

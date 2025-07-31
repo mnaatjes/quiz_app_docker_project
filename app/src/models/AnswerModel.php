@@ -31,6 +31,8 @@
         /**-------------------------------------------------------------------------*/
         /**
          * Returns answer record by question id
+         * - Answers are ordered ASC
+         * 
          * @static
          */
         /**-------------------------------------------------------------------------*/
@@ -46,7 +48,7 @@
              * TODO: Columns
              */
             $cols   = "id, is_correct, answer_text, explanation_text";
-            $sql    = "SELECT ".$cols." FROM " .static::$table_name. " WHERE question_id = :question_id";
+            $sql    = "SELECT ".$cols." FROM " .static::$table_name. " WHERE question_id = :question_id ORDER BY ".static::$p_key." ASC";
             $stmt   = static::$db->prepare($sql);
             $stmt->bindValue("question_id", $question_id, PDO::PARAM_INT);
             /**
