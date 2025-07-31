@@ -81,11 +81,11 @@
      * - Grab associated Answers
      */
     $uri = [
-        "user"  => 14,
-        "diff"  => 2,
-        "cat"   => 6
+        "user"  => 10,
+        "diff"  => 1,
+        "cat"   => 15
     ];
 
-    $quiz->packArr([5744,52056,97421,137430]);
+    $quiz->generateQuiz($uri["cat"], $uri["diff"], $uri["user"]);
 
 ?>
