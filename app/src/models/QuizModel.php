@@ -37,173 +37,141 @@
          * @param int $diff_id Difficulty ID
          * @param int $user_id User ID for checking played questions
          * @param int $quiz_length Total number of questions
+         * 
+         * @return array 
          */
         /**-------------------------------------------------------------------------*/
         public function generateQuiz($cat_id, $diff_id, $user_id, $quiz_length=10){
             /**
-             * Collect random Question IDs by cat_id and diff_id
+             * Check for existing records in UserQuiz:
+             * - Query UserQuizzes for entries by user_id
+             * - Get array of quiz_ids from UserQuiz by user_id
+             * - Collect json quiz_id_map rows from corresponding quiz_id where cateogry_id and diff_id match criteria
+             * - Consolidate quiz_id_maps into one array of question_ids representing used quizzes
              */
-            $quiz = QuestionModel::pullQuestions($cat_id, $diff_id, $quiz_length);
+            $quiz_ids = UserQuizModel::findQuizIdsByUser($user_id);
             
             /**
-             * @var array $quiz_id_arr Collector for quiz ids
+             * Question Ids that exist from previous quizzes by user
+             * @var array $question_ids
              */
-            $quiz_id_arr = [];
-            foreach($quiz as $question){
-                /**
-                 * Collect Question IDs
-                 */
-                $curr = [
-                    "question_id"   => $question["id"],
-                    "answer_ids"    => []
-                ];
-                /**
-                 * Collect Answer IDs
-                 */
-                foreach($question["answers"] as $answer){
-                    $curr["answer_ids"][] = $answer["id"];
-                }
-                /**
-                 * Push to array
-                 */
-                $quiz_id_arr[] = $curr;
-            }
-            
-            /**
-             * Convert to JSON
-             */
-            $json = json_encode($quiz_id_arr, JSON_PRETTY_PRINT);
-            
-            $json = '
-                [
-                    {
-                        "answer_ids": [
-                            80,
-                            46392
-                        ],
-                        "question_id": 80
-                    },
-                    {
-                        "answer_ids": [
-                            110,
-                            46422
-                        ],
-                        "question_id": 110
-                    },
-                    {
-                        "answer_ids": [
-                            391,
-                            46703,
-                            92878,
-                            132890
-                        ],
-                        "question_id": 391
-                    },
-                    {
-                        "answer_ids": [
-                            515,
-                            46827,
-                            92956,
-                            132968
-                        ],
-                        "question_id": 515
-                    },
-                    {
-                        "answer_ids": [
-                            622,
-                            46934,
-                            93039,
-                            133051
-                        ],
-                        "question_id": 622
-                    },
-                    {
-                        "answer_ids": [
-                            968,
-                            47280,
-                            93331,
-                            133343
-                        ],
-                        "question_id": 968
-                    },
-                    {
-                        "answer_ids": [
-                            993,
-                            47305
-                        ],
-                        "question_id": 993
-                    },
-                    {
-                        "answer_ids": [
-                            1157,
-                            47469,
-                            93476,
-                            133488
-                        ],
-                        "question_id": 1157
-                    },
-                    {
-                        "answer_ids": [
-                            1198,
-                            47510,
-                            93507,
-                            133519
-                        ],
-                        "question_id": 1198
-                    },
-                    {
-                        "answer_ids": [
-                            1288,
-                            47600
-                        ],
-                        "question_id": 1288
-                    }
-                ]
-            ';
-            
-            /**
-             * Check if map exists in any entries
-             */
-            $exists = static::findByQuizMap($json);
+            $question_ids = [];
 
-            if(is_int($exists)){
-                /**
-                 * Map exists in quizzes table:
-                 * - Get number of possible quiz generations
-                 * - Loop until solution found
-                 */
-                
-                $distinct = QuestionModel::countDistinct($cat_id, $diff_id, $quiz_length);
-
-                var_dump($distinct);
-                
-            } else {
-                var_dump("DOES NOT EXIST");
-                /**
-                 * Map does NOT exist in quizzes table:
-                 * - Perform Save and Return results
-                 * - Validate
-                 * - Assign id to model object
-                 */
-                /*
-                $result = static::save([
-                    "quiz_id_map"   => $json,
-                    "description"   => "",
-                    "category_id"   => $cat_id,
-                    "difficulty_id" => $diff_id,
-                    "created_at"    => mk_timestamp(),
-                    "updated_at"    => mk_timestamp()
-                ]);
-                */
-            }
             /**
-             * Evaluate:
-             * - On success, load into model
-             * - On failure, TODO: Error handling
+             * Check if previous user quiz entries exist
              */
-            //var_dump($result);
+            if($quiz_ids){
+                /**
+                 * User has previous entries in user_quizzes:
+                 */
+                $quiz_maps      = static::findMapsbyCriteria([1, 2, 3, 4, 5], 8, 1);
+                $question_ids   = static::processQuizMaps($quiz_maps);
+            }
+
+            /**
+             * Perform Question Pull
+             */
+            $questions_arr = QuestionModel::pullQuestions($cat_id, $diff_id, $question_ids, $quiz_length);
+            
+            /**
+             * Create New Record in quizzes table
+             */
+            $new_quiz_id = static::saveNewQuiz($questions_arr, "New Description", $cat_id, $diff_id);
+            var_dump($new_quiz_id);
+            /**
+             * Create New Record in user_quizzes:
+             * - user_id
+             * - New quiz_id
+             */
         }
 
+        /**-------------------------------------------------------------------------*/
+        /**
+         * Save New Quiz
+         * 
+         * @param array $quiz_id_map Quiz associative array from Generate Quiz
+         * @param string $description Text string of quiz description
+         * @param int $category_id 
+         * @param int $difficulty_id
+         * 
+         */
+        /**-------------------------------------------------------------------------*/
+        protected static function saveNewQuiz($questions_arr, $description, $category_id, $difficulty_id){
+
+            /**
+             * Grab question ids from $questions
+             * @var string $quiz_id_map JSON representation of question ids from $questions_arr
+             */
+            $question_ids = json_encode(array_column($questions_arr, "id"));
+
+            /**
+             * Format properties
+             * Execute Save
+             * Return new PKey value
+             */
+            return static::save([
+                "quiz_id_map"   => $question_ids,
+                "description"   => $description,
+                "category_id"   => $category_id,
+                "difficulty_id" => $difficulty_id,
+                "created_at"    => mk_timestamp(),
+                "updated_at"    => mk_timestamp()
+            ]);
+
+        }
+        
+        /**-------------------------------------------------------------------------*/
+        /**
+         * Find Quiz by criteria from list of quiz_ids
+         */
+        /**-------------------------------------------------------------------------*/
+        public static function findMapsbyCriteria($quiz_ids, $category_id, $difficulty_id){
+            /**
+             * Prepare SQL
+             */
+            // Create an array of unique named placeholders like :id0, :id1, etc.
+            $placeholders = array_map(function($index) {
+                return ":id" . $index;
+            }, array_keys($quiz_ids));
+
+            // Join them into a string for the IN clause
+            $filters = implode(", ", $placeholders);
+            
+            $sql = "SELECT quiz_id_map FROM " . static::$table_name . " WHERE id IN (" . $filters . ") AND category_id = :category_id AND difficulty_id = :difficulty_id";
+            $stmt = static::$db->prepare($sql);
+            
+            /**
+             * Bind Values and Execute
+             */
+            // Bind each quiz_id to its unique placeholder
+            foreach ($quiz_ids as $index => $id) {
+                $stmt->bindValue(":id" . $index, $id, PDO::PARAM_INT);
+            }
+            
+            // Bind the other values
+            $stmt->bindValue(":category_id", $category_id, PDO::PARAM_INT);
+            $stmt->bindValue(":difficulty_id", $difficulty_id, PDO::PARAM_INT);
+            
+            if($stmt->execute()){
+                return array_column($stmt->fetchAll(PDO::FETCH_ASSOC), "quiz_id_map");
+            } else {
+                return [];
+            }
+        }
+
+        /**-------------------------------------------------------------------------*/
+        /**
+         * 
+         */
+        /**-------------------------------------------------------------------------*/
+        public static function processQuizMaps($quiz_maps){
+            /**
+             * Convert strings to arrays
+             */
+            $data = array_merge(...array_map(function($str){return json_decode($str);}, $quiz_maps));
+            asort($data);
+            return $data;
+        }
         /**-------------------------------------------------------------------------*/
         /**
          * Find Quiz record by JSON quiz_id_map

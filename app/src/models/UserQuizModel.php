@@ -60,6 +60,31 @@
 
         /**-------------------------------------------------------------------------*/
         /**
+         * Find User Quizzes
+         * 
+         * @return array Array of quiz_ids
+         */
+        /**-------------------------------------------------------------------------*/
+        public static function findQuizIdsByUser($user_id){
+            /**
+             * Grab records from UserQuizzes
+             */
+            $quiz_ids = static::getPropsByParams(["quiz_id"], ["user_id" => $user_id]);
+            
+            /**
+             * Parse and return simple array
+             */
+            if(!empty($quiz_ids)){
+                return array_column($quiz_ids, "quiz_id");
+            } else {
+                return [];
+            }
+
+        }
+
+        
+        /**-------------------------------------------------------------------------*/
+        /**
          * CRUD Method: Record Exists in table by quiz_id and user_id Foreign Keys
          * 
          * @param int $f_key

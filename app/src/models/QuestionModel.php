@@ -45,24 +45,70 @@
          * - Questions are selected at random within criteria
          * - Questions are sorted by ID ASC
          * 
+         * @param int $cat_id Category Id
+         * @param int $diff_id Difficulty Id
+         * @param array $used_question_ids Default = []
+         * @param int $quiz_length Default = 10
+         * 
          * @return array
          */
         /**-------------------------------------------------------------------------*/
-        public static function pullQuestions($cat_id, $diff_id, $quiz_length){
+        public static function pullQuestions($cat_id, $diff_id, $used_question_ids=[], $quiz_length=10){
             /**
-             * @var array $questions Records from questions table
+             * Validate question ids
+             * @var bool $has_question_ids
              */
-            $questions = [];
+            $has_question_ids = !empty($used_question_ids) ? true : false;
 
             /**
-             * Form SQL
+             * @var string $cols Columns to return
              */
-            $cols   = "id, question_text, type, image_url, hint_text, source_reference";
-            $sql    = "SELECT ".$cols." FROM ".static::$table_name." WHERE category_id = :category_id AND difficulty_id = :difficulty_id AND is_active = 1 ORDER BY RAND() LIMIT ".$quiz_length;
-            $stmt   = static::$db->prepare($sql);
-            
+            $columns = "id, question_text, type, image_url, hint_text, source_reference";
+
             /**
-             * Bind Parameters
+             * Form SQL 
+             * @var string $sql
+             */
+            $sql = "SELECT " . $columns . " FROM " . static::$table_name . " WHERE category_id = :category_id AND difficulty_id = :difficulty_id AND is_active = 1";
+
+            /**
+             * Determine if used_question_ids exists
+             */
+            if($has_question_ids === true){
+                /**
+                 * User has existing quizzes that must be filtered out:
+                 * - Form SQL with NOT IN
+                 */
+                $placeholders = array_map(function($index) {
+                    return ":id" . $index;
+                }, array_keys($used_question_ids));
+
+                // Join them into a string for the IN clause
+                $filters = implode(", ", $placeholders);
+                $sql    .= " AND id NOT IN (" . $filters . ")";
+            }
+
+            /**
+             * Append Limit and ORDER
+             */
+            $sql .= " ORDER BY RAND() LIMIT " . $quiz_length;
+
+            /**
+             * Prepare SQL and Bind Parameters
+             */
+            $stmt = static::$db->prepare($sql);
+            
+            if($has_question_ids === true){
+                /**
+                 * Bind ID params also
+                 */
+                foreach ($used_question_ids as $index => $id) {
+                    $stmt->bindValue(":id" . $index, $id, PDO::PARAM_INT);
+                }
+            }
+
+            /**
+             * Bind Category and Difficulty Ids
              */
             $stmt->bindParam(':category_id', $cat_id, PDO::PARAM_INT);
             $stmt->bindParam('difficulty_id', $diff_id, PDO::PARAM_INT);
@@ -120,17 +166,19 @@
 
         /**-------------------------------------------------------------------------*/
         /**
-         * Count Distinct Questions
+         * Count Total by Criteria
+         * 
+         * @return int Number representing the total number of records which meet criteria
          */
         /**-------------------------------------------------------------------------*/
-        public static function countDistinct($category_id, $difficulty_id, $group_size){
+        public static function countTotalByCriteria($category_id, $difficulty_id, $group_size){
             /**
              * Count floor by limit with properties:
              * - Form SQL
              * - Bind Properties
              * - Execute and return
              */
-            $sql    = "SELECT FLOOR(COUNT(*) / ". $group_size .") AS distinct_groups_of_10 FROM questions WHERE category_id = :category_id AND difficulty_id = :difficulty_id";
+            $sql    = "SELECT FLOOR(COUNT(*) / ". $group_size .") AS groups_of_x FROM questions WHERE category_id = :category_id AND difficulty_id = :difficulty_id";
             $stmt   = static::$db->prepare($sql);
             // Bind
             $stmt->bindValue(':category_id', $category_id, PDO::PARAM_INT);

@@ -36,7 +36,10 @@
     if(empty($dbConfig)){
         throw new Exception('Unable to identify Database Configuration!');
     }
-
+    /**
+     * Debugging Constants
+     */
+    $UID = 7;
     /**
      * @var object|null PDO connection
      */
@@ -62,7 +65,7 @@
      * 5) Create / Update 'UserQuizzes' Record
      * 6) Update User Record
      */
-    $user->id = 12;
+    $user->id = $UID;
     $user->load();
     /**
      * 1) Select Criteria and Send Back to User
@@ -81,7 +84,7 @@
      * - Grab associated Answers
      */
     $uri = [
-        "user"  => 8,
+        "user"  => $UID,
         "diff"  => 1,
         "cat"   => 14
     ];

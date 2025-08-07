@@ -232,6 +232,80 @@ abstract class Model
 
     /**-------------------------------------------------------------------------*/
     /**
+     * CRUD Method: Get All by Foreign Key
+     * 
+     * @return array
+     */
+    /**-------------------------------------------------------------------------*/
+    public static function getAllByFKey($f_key, $f_key_name){
+        /**
+         * Form Query and Request Records
+         */
+        $records = [];
+        $sql     = "SELECT * FROM " . static::$table_name . " WHERE " . $f_key_name . " = :" . $f_key_name;
+        var_dump($sql);
+        $stmt    = static::$db->prepare($sql);
+        $stmt->bindParam(":".$f_key_name, $f_key, PDO::PARAM_INT);
+        $stmt->execute();
+
+        $records = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        /**
+         * Return Assoc Array
+         */
+        return $records;
+    }
+
+    /**-------------------------------------------------------------------------*/
+    /**
+     * Get Props by Params
+     * @param array $properties Properties to select from each record
+     * @param array $parameters Parameters for clauses which are equal to
+     * 
+     * @return array Array of associated records based on properties and parameters
+     */
+    /**-------------------------------------------------------------------------*/
+    public static function getPropsByParams(array $properties, array $parameters){
+        /**
+         * Form SQL
+         * - Define properties and format
+         * - Format parameters with placeholders
+         * - Create SQL string
+         */
+        $clauses = [];
+        foreach($parameters as $key => $_){
+            $clauses[] = $key . " = :" . $key;
+        }
+        $sql  = "SELECT " . implode(", ", $properties) . " FROM ". static::$table_name ." WHERE " . implode(" AND ", $clauses);
+        $stmt = static::$db->prepare($sql);
+
+        /**
+         * Handle Error Preparing
+         */
+        if(!$stmt){
+            return [];
+        }
+        /**
+         * Bind Parameters
+         */
+        foreach ($parameters as $key => $value) {
+            $stmt->bindValue(':' . $key, $value);
+        }
+        
+        /**
+         * Execute and Return
+         */
+        if($stmt->execute()){
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        }
+
+        /**
+         * Return Default
+         */
+        return [];
+    }
+
+    /**-------------------------------------------------------------------------*/
+    /**
      * Count by Properties
      * 
      * @return int Count from provided query
@@ -393,7 +467,7 @@ abstract class Model
             /**
              * INSERT
              */
-            return static::insert($properties);
+            $value = static::insert($properties);
         }
 
         /**
@@ -434,14 +508,8 @@ abstract class Model
          * Execute and evaluate result
          */
         $result = $stmt->execute();
-        if ($result && static::$db->lastInsertId()) {
-            $result = static::$db->lastInsertId();
-        }
-
-        /**
-         * Return Default Boolean | ID of last insert
-         */
-        return $result;
+        return ((int)static::$db->lastInsertId());
+        return static::$db->lastInsertId();
     }
 
     /**-------------------------------------------------------------------------*/
