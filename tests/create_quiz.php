@@ -13,21 +13,33 @@
     enable_errors();
 
     /**
-     * Require Models, Controllers, and other Objects
+     * User Model, Repo, Controller
      */
-    require_once('/var/www/app/src/models/UserModel.php');
-    require_once('/var/www/app/src/models/DifficultyModel.php');
-    require_once('/var/www/app/src/models/QuizModel.php');
-    require_once('/var/www/app/src/models/UserQuizModel.php');
-    require_once('/var/www/app/src/models/CategoryModel.php');
-    require_once('/var/www/app/src/models/AnswerModel.php');
-    require_once('/var/www/app/src/models/QuestionModel.php');
+    require_once('/var/www/app/models/UserModel.php');
+    require_once('/var/www/app/models/UserRepository.php');
+    require_once('/var/www/app/controllers/UserController.php');
 
     /**
-     * Controllers
+     * Quiz Model, Repo, Controller
      */
-    require_once('/var/www/app/src/controllers/get_criteria.php');
+    require_once('/var/www/app/models/QuizModel.php');
+    require_once('/var/www/app/models/QuizRepository.php');
+    require_once('/var/www/app/controllers/QuizController.php');
+    require_once('/var/www/app/http/reponses/QuizResponseObject.php');
 
+    /**
+     * Question Model, Repo, Controller
+     */
+    require_once('/var/www/app/models/QuestionModel.php');
+    require_once('/var/www/app/models/QuestionRepository.php');
+    //require_once('/var/www/app/controllers/QuestionController.php');
+
+    /**
+     * Answer Model, Repo, Controller
+     */
+    require_once('/var/www/app/models/AnswerModel.php');
+    require_once('/var/www/app/models/AnswerRepository.php');
+    //require_once('/var/www/app/controllers/QuestionController.php');
     /**
      * Attempt PDO Connection to DB
      */
@@ -36,59 +48,33 @@
     if(empty($dbConfig)){
         throw new Exception('Unable to identify Database Configuration!');
     }
-    /**
-     * Debugging Constants
-     */
-    $UID = 7;
-    /**
-     * @var object|null PDO connection
-     */
-    $pdo = db_connect($dbConfig);
-    
-    /**
-     * Models
-     */
-    $user       = new UserModel($pdo);
-    $diff       = new DiffModel($pdo);
-    $quiz       = new QuizModel($pdo);
-    $user_quiz  = new UserQuizModel($pdo);
-    $category   = new CategoryModel($pdo);
-    $answer     = new AnswerModel($pdo);
-    $question   = new QuestionModel($pdo);
 
     /**
-     * Create Quiz Flow:
-     * 1) Select Criteria
-     * 2) Pull Questions
-     * 3) Generate Quiz Seed
-     * 4) Create 'Quizzes' Record
-     * 5) Create / Update 'UserQuizzes' Record
-     * 6) Update User Record
+     * Create Dependencies
      */
-    $user->id = $UID;
-    $user->load();
-    /**
-     * 1) Select Criteria and Send Back to User
-     */
-    $criteria = get_criteria($pdo);
+    $userRepo       = new UserRepository();
+    $answerRepo     = new AnswerRepository();
+    $questionRepo   = new QuestionRepository();
+    $quizRepo       = new QuizRepository($questionRepo);
+
 
     /**
-     * TODO: Send
+     * Create User
      */
+    /*
+    $userController = new UserController($userRepo);
+    $userController->createUserAction(["params" => [
+        "username" => "SteveisWonder",
+        "firstname" => "Steve",
+        "lastname" => "Wonderful",
+        "password_hash" => "dsfdsffewlkfok2k3lklkl32",
+        "email" => "wondersteve@gmail.com"
+    ]], "");
+    */
 
     /**
-     * 2) Pull Questions
-     * - Dummy Data from Categories
-     * - URI: /user/12/diff/2/cat/5
-     * - Grab Questions
-     * - Grab associated Answers
+     * Create Quiz
      */
-    $uri = [
-        "user"  => $UID,
-        "diff"  => 1,
-        "cat"   => 14
-    ];
-
-    $quiz->generateQuiz($uri["cat"], $uri["diff"], $uri["user"]);
-    
+    $quizController = new QuizController($quizRepo, $questionRepo, $answerRepo);
+    $quizController->createQuizAction(4, 1, 8, 10);
 ?>
