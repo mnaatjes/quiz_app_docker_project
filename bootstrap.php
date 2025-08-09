@@ -19,7 +19,7 @@
     /**
      * @var string PROJECT_ROOT
      */
-    const PROJECT_ROOT = __DIR__ ;
+    const PROJECT_ROOT = ROOT_DIR;
 
     /**
      * Register the autoloader for the application.
@@ -43,7 +43,8 @@
             PROJECT_ROOT . '/app/models/',
             PROJECT_ROOT . '/app/controllers/',
             PROJECT_ROOT . '/app/repositories/',
-            PROJECT_ROOT . '/app/services/'
+            PROJECT_ROOT . '/app/services/',
+            PROJECT_ROOT . '/tests/'
         ];
 
         // Convert the class name from its namespace to a file path format.
