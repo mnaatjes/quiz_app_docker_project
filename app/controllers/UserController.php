@@ -40,12 +40,13 @@ class UserController {
      * Handles the $req and $res for creating a user
      */
     /**-------------------------------------------------------------------------*/
-    public function createUserAction($req, $res){
+    public function createUserAction($req, $res, $params){
+        var_dump($params);
 
         /**
          * Create new User
          */
-        $user = $this->userRepository->createUser($req["params"]);
+        $user = $this->userRepository->createUser($params);
 
         /**
          * Validate

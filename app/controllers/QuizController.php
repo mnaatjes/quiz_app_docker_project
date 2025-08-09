@@ -35,7 +35,12 @@ class QuizController {
      * Create Quiz
      */
     /**-------------------------------------------------------------------------*/
-    public function createQuizAction(int $category_id, int $difficulty_id, int $user_id, int $length=10){
+    public function createQuizAction($req, $res){
+        $category_id = 4;
+        $difficulty_id = 1;
+        $user_id = 12;
+        $length = 10;
+        return;
         /**
          * Create New Quiz Object
          */
