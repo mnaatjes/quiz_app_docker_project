@@ -57,9 +57,6 @@
     $router->get("", function(){
         var_dump("Home");
     });
-    //$router->get("/samples/{id}/", "SampleController@log");
-    $router->get("/samples/{username}/{email}/{password_hash}", [UserController::class, "createUserAction"]);
-    $router->dispatch($request, $response);
     /**
      * TODO: Declare Router Instance and declare paths
      */
