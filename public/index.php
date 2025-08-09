@@ -54,9 +54,10 @@
      * Debugging
      */
     $router = new Router($container);
-    $router->get("", function(){
+    $router->get("/", function(){
         var_dump("Home");
     });
+    $router->dispatch($request, $response);
     /**
      * TODO: Declare Router Instance and declare paths
      */
