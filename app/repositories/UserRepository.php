@@ -1,7 +1,5 @@
 <?php
 
-require_once("Database.php");
-
 /**-------------------------------------------------------------------------*/
 /**
  * UserRepository Class
@@ -22,8 +20,11 @@ class UserRepository {
      * Initializes the repository by getting the shared database connection.
      */
     /**-------------------------------------------------------------------------*/
-    public function __construct() {
-        $this->db = Database::getInstance()->getConnection();
+    public function __construct(Database $db_instance) {
+        /**
+         * Create Connection to DB Instance
+         */
+        $this->db = $db_instance->getConnection();
     }
     
     /**-------------------------------------------------------------------------*/
