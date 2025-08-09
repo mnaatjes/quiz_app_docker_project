@@ -21,8 +21,8 @@
      * Require Framework Classes
      * TODO: Move to Container Dependency Injection
      */
-    require_once('HttpRequest.php');
-    require_once('HttpResponse.php');
+    //require_once('HttpRequest.php');
+    //require_once('HttpResponse.php');
 
     /**-------------------------------------------------------------------------*/
     /**
@@ -167,7 +167,7 @@
                              * - Call the handler with the HttpRequest, HttpResponse, and extracted parameters
                              * - Return
                              */
-                            call_user_func($route['handler'], $this->request, $this->response, $params);
+                            call_user_func($route['handler'], $req, $res, $params);
                             return;
 
                         } catch(Exception $e){
