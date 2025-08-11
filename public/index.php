@@ -25,6 +25,34 @@
     $container->set("db", $dbInstance);
 
     /**
+     * Set ORM Instance with DB Dependency
+     */
+    $container->setShared("orm", function($container){
+        return new ORM($container->get("db"));
+    });
+
+    /**
+     * Add Dependency to SampleRepo
+     */
+    $container->set("SampleRepository", function($container){
+        return new SampleRepository($container->get("orm"));
+    });
+    $container->set(TestRepository::class, function($container){
+        return new TestRepository($container->get("orm"));
+    });
+    $container->set(SampleController::class, function($container){
+        return new SampleController($container->get("SampleRepository"));
+    });
+    $container->set(TestController::class, function($container){
+        return new TestController($container->get("TestRepository"));
+    });
+
+    $controller = $container->get("TestController");
+    $controller->actionHydrate();
+
+    $test = new Repository($container->get("orm"));
+
+    /**
      * Set HTTP Request and Reponse Objects
      */
     $request    = new HttpRequest();
@@ -37,10 +65,12 @@
     /**
      * Set User Dependencies
      */
+
     $container->set(SampleController::class, function($container){
         return new SampleController("Hola, Como Estas?");
         // TODO: add dependency for test
     });
+    /*
 
     $container->set("UserRepository", function($container){
         return new UserRepository($container->get("db"));
@@ -49,13 +79,14 @@
         
         return new UserController($container->get("UserRepository"));
     });
-
+    */
     /**
      * Debugging
      */
+    /*
     $router = new Router($container);
     $router->get("/", function(){
-        var_dump("Home");
+        var_dump("Hello this is the index");
     });
     $router->dispatch($request, $response);
     /**

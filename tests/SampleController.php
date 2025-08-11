@@ -5,8 +5,10 @@
      */
     class SampleController {
         public ?string $testParam;
-        public function __construct(?string $test_param=NULL){
-            var_dump("SampleController Instance Created");
+        private object $repo;
+        public function __construct($repository, ?string $test_param=NULL){
+            
+            $this->repo = $repository;
             $this->testParam = $test_param;
         }
         public function log(HttpRequest $req, HttpResponse $res, array $params){

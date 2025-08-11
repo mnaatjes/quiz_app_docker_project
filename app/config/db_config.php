@@ -17,7 +17,8 @@ if (basename(__FILE__) == basename($_SERVER['SCRIPT_FILENAME'])) {
  */
 return [
     'host'      => 'quiz-app-db',
-    'db_name'   => 'quiz_db',
+    //'db_name'   => 'quiz_db',
+    'db_name'   => 'test',
     'user'      => 'root',
     'password'  => 'password',
     'charset'   => 'utf8mb4',
