@@ -201,6 +201,7 @@
         /**
          * Get Model Methods
          * 
+         * @deprecated
          * @return array
          * @throws Exception
          */
@@ -241,7 +242,7 @@
         /**-------------------------------------------------------------------------*/
         public function hydrate($record){
             /**
-             * Get model properties and parameters
+             * Get model properties, methods, and parameters
              */
             $properties = $this->getModelProps();
             $parameters = array_map(function($param){
@@ -266,13 +267,37 @@
             );
 
             /**
-             * Assign remaining Properties
+             * Assign remaining Properties:
+             * - Validate Difference
+             * - Check for uninitialized properties of $reflection
              */
             foreach($difference as $diff){
-                
-            }
-            var_dump($model);
+                // Validate property has not been set
+                $reflectedProp = new ReflectionProperty($model, $diff);
+                if(!$reflectedProp->isInitialized($model)){
+                    /**
+                     * Execute Method on UnInitialized Properties:
+                     * - Form method string
+                     * - Find value from $record (camelCase to snake_case)
+                     * - Execute set method
+                     */
+                    // Form Method string
+                    $method = "set" . ucfirst($diff);
 
+                    // snake_case key
+                    $key = strtolower(preg_replace('/(?<!^)[A-Z]/', '_$0', $diff));
+
+                    // Validate record key
+                    if(array_key_exists($key, $record)){
+                        // Perform Set Action and inject record value
+                        $model->$method($record[$key]);
+                    }
+                }
+            }
+            /**
+             * Return Model
+             */
+            return $model;
         }
 
     }

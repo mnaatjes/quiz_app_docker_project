@@ -20,11 +20,15 @@
         }
 
         public function actionHydrate(){
-            $this->repo->hydrate([
+            $model = $this->repo->hydrate([
                 "id" => 3, 
                 "text" => "Lorem Ipsum",
-                "is_active" => false
+                "is_active" => false,
+                "created_at" => time(),
+                "updated_at" => time(),
             ]);
+
+            var_dump(json_encode($model));
         }
     }
 ?>
