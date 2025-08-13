@@ -17,11 +17,6 @@
  * 
  *  - DotEnv Class added to package to parse env variables
  *  - Added Namespace
- *   
- * 
- * 
- * TODO: Fix how configuration file works
- * TODO: Add .env support
  */
 namespace mnaatjes\DataAccess;
 use PDO;
@@ -48,24 +43,16 @@ class Database {
      * @throws PDOException if the connection fails.
      */
     private function __construct() {
-        // Path to the configuration file.
-        $configPath = __DIR__ . '/../../app/config/db_config.php';
-        
-        // Check if the configuration file exists before including it.
-        if (!file_exists($configPath)) {
-            throw new \Exception("Database configuration file not found at: " . $configPath);
-        }
-
-        // Load the database configuration from the file.
-        $config = require $configPath;
-        
-        // Extract connection details from the config array.
-        $host = $config['host'];
-        $db   = $config['db_name'];
-        $user = $config['user'];
-        $pass = $config['password'];
-        $charset = $config['charset'];
-        $options = $config['options'];
+        /**
+         * Load DB properties as ENV variables
+         * Since 1.1.1 No longer loading from filepath! 
+         */
+        $host       = getenv("DB_HOST");
+        $db         = getenv("DB_CONNECTION");
+        $user       = getenv("DB_USERNAME");
+        $pass       = getenv("DB_PASSWORD");
+        $charset    = getenv("DB_CHARSET");
+        $options    = $_ENV["DB_OPTIONS"];
 
         $dsn = "mysql:host=$host;dbname=$db;charset=$charset";
         
