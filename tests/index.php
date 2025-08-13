@@ -17,5 +17,9 @@
     //$last_id = $orm->create("users", DataGenerator::getUser());
     //$row_count = $orm->update("users", ["username" => "asdasdsadsdadwewewew"], ["id" => 66]);
     //$row_count = $orm->delete("users", ["id" => 64]);
+    //$count = $orm->count("users", [["id", ">", 55]]);
+    //$has_column = $orm->columnExists("users", "created_at");
+    //var_dump($has_column);
+
     
 ?>
