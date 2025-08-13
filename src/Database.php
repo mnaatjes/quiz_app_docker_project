@@ -48,13 +48,14 @@ class Database {
          * Since 1.1.1 No longer loading from filepath! 
          */
         $host       = getenv("DB_HOST");
-        $db         = getenv("DB_CONNECTION");
+        $connection = getenv("DB_CONNECTION");
+        $db         = getenv("DB_DATABASE");
         $user       = getenv("DB_USERNAME");
         $pass       = getenv("DB_PASSWORD");
         $charset    = getenv("DB_CHARSET");
         $options    = $_ENV["DB_OPTIONS"];
 
-        $dsn = "mysql:host=$host;dbname=$db;charset=$charset";
+        $dsn = "$connection:host=$host;dbname=$db;charset=$charset";
         
         try {
             $this->connection = new PDO($dsn, $user, $pass, $options);

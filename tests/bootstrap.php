@@ -34,8 +34,11 @@
      * Declare namespaces to use
      */
     use mnaatjes\DataAccess\utils\DotEnv;
+
     /**
      * Create .env reader instance
      */
     DotEnv::load(__DIR__ . "/.env");
+
+    
 ?>

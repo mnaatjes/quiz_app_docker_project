@@ -1,21 +1,32 @@
 <?php
     /**
-     * ORM: 
-     * 
-     * @version 1.1.0
-     * 
-     * @since 1.0.0:
-     *  - Created
-     * 
-     * @since 1.1.0:
-     *  - Pulled from quiz_app and moved to data-access repo
-     *  - Added Namespace
+     * Declare Namespaces
      */
     namespace mnaatjes\DataAccess;
     use PDO;
     use Exception;
     use mnaatjes\DataAccess\Database;
 
+    /**
+     * ORM: 
+     * 
+     * @version 1.2.0
+     * 
+     * @since 1.0.0:
+     *  - Created
+     * 
+     * 
+     * @since 1.1.0:
+     *  - Pulled from quiz_app and moved to data-access repo
+     *  - Added Namespace
+     * 
+     * @since 1.2.0:
+     * - Added ShowTables() method
+     * 
+     * TODO: Test
+     * TODO: Finish Crud Methods
+     * 
+     */
     class ORM {
         /**
          * Database Object Instance
@@ -43,6 +54,29 @@
             $this->db = $db_instance->getConnection();
             // Increment ORM Instance Count
             self::$instanceCount++;
+        }
+
+        /**-------------------------------------------------------------------------*/
+        /**
+         * Admin Method: Show Tables
+         * - Lists all tables in database
+         */
+        /**-------------------------------------------------------------------------*/
+        public function showTables(){
+            /**
+             * Perform with try to catch exceptions
+             */
+            try {
+                // Form sql and prepare
+                $stmt = $this->db->prepare("SHOW TABLES");
+
+                // Execute Query and return array
+                $stmt->execute();
+                return $stmt->fetchAll(PDO::FETCH_COLUMN);
+
+            } catch(Exception $e){
+                var_dump("Unable to list Database Tables! Error: " . $e);
+            }
         }
 
         /**-------------------------------------------------------------------------*/
@@ -151,5 +185,16 @@
          * CRUD Method:
          */
         /**-------------------------------------------------------------------------*/
+        public function create(string $table_name, array $data){
+            /**
+             * Get columns
+             * Get placeholders
+             * Write SQL Statement
+             */
+            $columns        = implode(", ", array_keys($data));
+            $placeholders   = ":" . implode(", :", array_keys($data));
+            var_dump($placeholders);
+
+        }
     }
 ?>
