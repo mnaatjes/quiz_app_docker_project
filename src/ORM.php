@@ -10,7 +10,7 @@
     /**
      * ORM: 
      * 
-     * @version 1.2.0
+     * @version 1.2.1
      * 
      * @since 1.0.0:
      *  - Created
@@ -24,6 +24,9 @@
      * - Added Create Method
      * - Added Delete, columnExists, query, update, findOne, findColumns, and count methods
      * 
+     * @since 1.2.1:
+     * - Modified find() method to include LIMIT and ORDER BY parameters
+     * - Modified findOne() method to accept parameter change of find()
      * 
      */
     class ORM {
@@ -62,11 +65,13 @@
          * @param string $table_name
          * @param array $conditions
          * @param array $columns
+         * @param array $orderBy Associative Array of columnName => ASC | DESC, Default empty array
+         * @param int $limit Default 0 meaning no LIMIT
          * @param string $fetchMethod Default = fetchAll
          * @param string $fetchMethod Default = PDO::FETCH_ALL
          */
         /**-------------------------------------------------------------------------*/
-        public function find(string $table_name, array $conditions=[], array $columns=["*"], $fetchMethod="fetchAll", $fetchStyle=PDO::FETCH_ASSOC){
+        public function find(string $table_name, array $conditions=[], array $orderBy=[], $limit=0, array $columns=["*"], $fetchMethod="fetchAll", $fetchStyle=PDO::FETCH_ASSOC){
             /**
              * Form SQL:
              * - Apply columns
@@ -142,6 +147,28 @@
             }
 
             /**
+             * Append ORDER BY
+             */
+            if(!empty($orderBy)){
+                // Grab Values
+                $orderClause = [];
+                foreach($orderBy as $column => $direction){
+                    $orderClause[] = $column . " " . $direction;
+                }
+
+                // Implode and Append
+                $sql .= " ORDERY BY " . implode(", ", $orderClause);
+            }
+
+            /**
+             * Append LIMIT
+             */
+            if($limit > 0){
+                // Append
+                $sql .= " LIMIT " . $limit;
+            }
+        
+            /**
              * Prepare Statement
              * Set Bindings
              * Execute
@@ -165,7 +192,7 @@
         /**-------------------------------------------------------------------------*/
         public function findOne(string $table_name, array $conditions, array $columns=["*"]){
             // Use find() method
-            return $this->find($table_name, $conditions, $columns, "fetch", PDO::FETCH_ASSOC);
+            return $this->find($table_name, $conditions, [], 1, $columns);
         }
 
         /**-------------------------------------------------------------------------*/
