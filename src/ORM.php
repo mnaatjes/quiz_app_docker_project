@@ -2,10 +2,20 @@
     /**
      * ORM: 
      * 
-     * @version 1.0
-     * @since 1.0:
+     * @version 1.1.0
+     * 
+     * @since 1.0.0:
      *  - Created
+     * 
+     * @since 1.1.0:
+     *  - Pulled from quiz_app and moved to data-access repo
+     *  - Added Namespace
      */
+    namespace mnaatjes\DataAccess;
+    use PDO;
+    use Exception;
+    use mnaatjes\DataAccess\Database;
+
     class ORM {
         /**
          * Database Object Instance

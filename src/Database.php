@@ -4,7 +4,28 @@
  *
  * This class provides a single, shared instance of a PDO database connection,
  * with configuration data loaded from an external file.
+ * 
+ * @version 1.1.0 
+ * @since 1.0.0 Created
+ * @since 1.1.0:
+ *  - Pulled from quiz_repo and made a dedicated package
+ *  - Added __clone() method
+ *  - Modified configuration variable retrieval:
+ *      -> No more dependence on file path
+ *      -> Maintains singleton 
+ *      -> Modified getInstance() to get values using getenv()
+ * 
+ *  - DotEnv Class added to package to parse env variables
+ *  - Added Namespace
+ *   
+ * 
+ * 
+ * TODO: Fix how configuration file works
+ * TODO: Add .env support
  */
+namespace mnaatjes\DataAccess;
+use PDO;
+
 class Database {
     /**
      * The single instance of the Database class.
@@ -55,6 +76,14 @@ class Database {
             throw new \PDOException("Failed to connect to the database: " . $e->getMessage(), (int)$e->getCode());
         }
     }
+
+
+    /**
+     * Prevents the instance from being cloned
+     * TODO: Test
+     */
+    //private function __clone(){}
+
 
     /**
      * Returns the single instance of the Database class.
