@@ -14,5 +14,8 @@
 
     //var_dump(json_encode($orm->find("users"), JSON_PRETTY_PRINT));
     //var_dump($orm->showTables());
-    $orm->create("users", DataGenerator::getUser());
+    //$last_id = $orm->create("users", DataGenerator::getUser());
+    //$row_count = $orm->update("users", ["username" => "asdasdsadsdadwewewew"], ["id" => 66]);
+    //$row_count = $orm->delete("users", ["id" => 64]);
+    
 ?>

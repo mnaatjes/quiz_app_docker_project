@@ -21,7 +21,7 @@
      *  - Added Namespace
      * 
      * @since 1.2.0:
-     * - Added ShowTables() method
+     * - Added Create Method
      * 
      * TODO: Test
      * TODO: Finish Crud Methods
@@ -54,29 +54,6 @@
             $this->db = $db_instance->getConnection();
             // Increment ORM Instance Count
             self::$instanceCount++;
-        }
-
-        /**-------------------------------------------------------------------------*/
-        /**
-         * Admin Method: Show Tables
-         * - Lists all tables in database
-         */
-        /**-------------------------------------------------------------------------*/
-        public function showTables(){
-            /**
-             * Perform with try to catch exceptions
-             */
-            try {
-                // Form sql and prepare
-                $stmt = $this->db->prepare("SHOW TABLES");
-
-                // Execute Query and return array
-                $stmt->execute();
-                return $stmt->fetchAll(PDO::FETCH_COLUMN);
-
-            } catch(Exception $e){
-                var_dump("Unable to list Database Tables! Error: " . $e);
-            }
         }
 
         /**-------------------------------------------------------------------------*/
@@ -182,7 +159,7 @@
         
         /**-------------------------------------------------------------------------*/
         /**
-         * CRUD Method:
+         * CRUD Method: Create (INSERT) Single Table Entry
          */
         /**-------------------------------------------------------------------------*/
         public function create(string $table_name, array $data){
@@ -193,8 +170,240 @@
              */
             $columns        = implode(", ", array_keys($data));
             $placeholders   = ":" . implode(", :", array_keys($data));
-            var_dump($placeholders);
+            $sql = "INSERT INTO " . $table_name . " ( " .$columns . " ) VALUES ( " . $placeholders . ")";
+            
+            /**
+             * Try: Prepare and Execute
+             * Catch: Exception
+             * Return: Last insert ID / false
+             */
+            try {
+                // Prepare Statement
+                $stmt = $this->db->prepare($sql);
 
+                // Bind Params
+                foreach($data as $key => &$value){
+                    $stmt->bindParam(":" . $key, $value);
+                }
+
+                // Execute and Return
+                $stmt->execute();
+                return $this->db->lastInsertId();
+
+            } catch (Exception $e){
+                // Return false on failure to execute
+                return false;
+            }
         }
+
+        /**-------------------------------------------------------------------------*/
+        /**
+         * Update Record
+         */
+        /**-------------------------------------------------------------------------*/
+        public function update(string $table_name, array $data, array $conditions){
+            /**
+             * @var array setClause
+             */
+            $setClause = [];
+
+            /**
+             * @var array bindings Placeholder bindings
+             */
+            $bindings = [];
+
+            // Get setClause and Bindings
+            foreach ($data as $column => $value) {
+                $setClause[]    = $column . " = ?";
+                $bindings[]     = $value;
+            }
+
+            /**
+             * @var array $whereClause
+             */
+            $whereClause = [];
+
+            // Check if $conditions array of arrays
+            if(array_keys($conditions) !== range(0, count($conditions) - 1)){
+                $conditions = [$conditions];
+            }
+
+            // Build whereClause
+            foreach($conditions as $condition){
+                // Validate Condition Array
+                if(!is_array($condition)){
+                    throw new Exception("Unable to process Condition in Update(). Condition is NOT an array!");
+                }
+
+                // Determine array key format: assoc. v indexed
+                if(array_keys($condition) != range(0, count($condition) - 1)){
+                    /**
+                     * Conditions array is associative array:
+                     * - Collect keys
+                     * - Collect values
+                     * - Define default operator
+                     * - Generate WHERE clause
+                     * - Assign value bindings
+                     */
+                    // Loop and collect keys and values
+                    $keys   = array_keys($condition);
+                    $values = array_values($condition);
+
+                    // Assign default operator
+                    $operator = "=";
+
+                    // Assemble WHERE clause and bindings
+                    for($i = 0; $i < count($keys); $i++){
+                        $whereClause[]  = $keys[$i] . " " . $operator . " ?";
+                        $bindings[]     = $values[$i];
+                    }
+
+                } else {
+                    /**
+                     * Condition array is NOT an associative array
+                     */
+                    if(count($condition) === 2){
+                        // Determine count 2 (non-assoc array) to inject equals operator
+                        list($column, $value) = $condition;
+
+                        // Assign default operator
+                        $operator = "=";
+
+                    } elseif(count($condition) === 3){
+                        // Determine if length 3 and normal list
+                        list($column, $operator, $value) = $condition;
+                    }
+
+                    // Assemble WHERE clause and bindings
+                    $whereClause[]  = $column . " " . $operator . " ?";
+                    $bindings[]     = $value;
+                }
+            }
+
+            /**
+             * Build SQL
+             */
+            $sql = "UPDATE " . $table_name . " SET " . implode(", ", $setClause) . " WHERE " . implode(" AND ", $whereClause);
+            /**
+             * Try: Execute with Bindings
+             */
+            try {
+                // Prepare and Execute
+                $stmt = $this->db->prepare($sql);
+                $stmt->execute($bindings);
+
+                // Return
+                // Return number of affected rows
+                return $stmt->rowCount();
+
+            } catch(Exception $e){
+                // Return false on failure to execute
+                return false;
+            }
+
+            // Return Default
+            return false;
+        }
+
+        /**-------------------------------------------------------------------------*/
+        /**
+         * Delete Record
+         */
+        /**-------------------------------------------------------------------------*/
+        public function delete(string $table_name, array $conditions){
+            /**
+             * @var array bindings Placeholder bindings
+             */
+            $bindings = [];
+
+            /**
+             * @var array $whereClause
+             */
+            $whereClause = [];
+
+            // Check if $conditions array of arrays
+            if(array_keys($conditions) !== range(0, count($conditions) - 1)){
+                $conditions = [$conditions];
+            }
+            
+            // Build whereClause
+            foreach($conditions as $condition){
+                // Validate Condition Array
+                if(!is_array($condition)){
+                    throw new Exception("Unable to process Condition in Delete(). Condition is NOT an array!");
+                }
+                // Determine array key format: assoc. v indexed
+                if(array_keys($condition) != range(0, count($condition) - 1)){
+                    /**
+                     * Conditions array is associative array:
+                     * - Collect keys
+                     * - Collect values
+                     * - Define default operator
+                     * - Generate WHERE clause
+                     * - Assign value bindings
+                     */
+                    // Loop and collect keys and values
+                    $keys   = array_keys($condition);
+                    $values = array_values($condition);
+
+                    // Assign default operator
+                    $operator = "=";
+
+                    // Assemble WHERE clause and bindings
+                    for($i = 0; $i < count($keys); $i++){
+                        $whereClause[]  = $keys[$i] . " " . $operator . " ?";
+                        $bindings[]     = $values[$i];
+                    }
+
+                } else {
+                    /**
+                     * Condition array is NOT an associative array
+                     */
+                    if(count($condition) === 2){
+                        // Determine count 2 (non-assoc array) to inject equals operator
+                        list($column, $value) = $condition;
+
+                        // Assign default operator
+                        $operator = "=";
+
+                    } elseif(count($condition) === 3){
+                        // Determine if length 3 and normal list
+                        list($column, $operator, $value) = $condition;
+                    }
+
+                    // Assemble WHERE clause and bindings
+                    $whereClause[]  = $column . " " . $operator . " ?";
+                    $bindings[]     = $value;
+                }
+            }
+
+            /**
+             * Build SQL
+             */
+            $sql = "DELETE FROM " . $table_name . " WHERE " . implode(" AND ", $whereClause);
+            var_dump($sql);
+
+            /**
+             * Try: Execute with Bindings
+             */
+            try {
+                // Prepare and Execute
+                $stmt = $this->db->prepare($sql);
+                $stmt->execute($bindings);
+
+                // Return
+                // Return number of affected rows
+                return $stmt->rowCount();
+
+            } catch(Exception $e){
+                // Return false on failure to execute
+                return false;
+            }
+
+            // Return Default
+            return false;
+        }
+
+        /**-------------------------------------------------------------------------*/
     }
 ?>
