@@ -22,8 +22,8 @@
      * 
      * @since 1.2.0:
      * - Added Create Method
-     * - Added Delete, columnExists, query, 
-     * TODO: Finish Crud Methods
+     * - Added Delete, columnExists, query, update, findOne, findColumns, and count methods
+     * 
      * 
      */
     class ORM {
