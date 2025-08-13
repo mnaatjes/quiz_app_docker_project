@@ -21,5 +21,7 @@
     //$has_column = $orm->columnExists("users", "created_at");
     //var_dump($has_column);
 
-    
+    $full_name = DataGenerator::getRandomDateTime();
+    var_dump($full_name);
+
 ?>
