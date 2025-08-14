@@ -9,14 +9,29 @@
     /**
      * Base / Parent Repository Class
      * 
-     * @version 1.0
-     * @since 1.0: 
+     * @since 1.0.0: 
      *  - Created
+     * 
+     * @since 1.0.1:
+     * - Moved from MVC-Core to data-access
+     * 
+     * @since 1.1.0:
+     * - Added comments to getReflection()
+     * - Added comments to getTableName()
+     * - Removed:
+     *  --> findById()
+     *  --> findByWhere()
+     * - Added all main comments to all existing methods
+     * 
+     * @since 1.1.1:
+     * 
+     * @version 1.1.1
      */
     /**-------------------------------------------------------------------------*/
     class BaseRepository {
         /**
          * @var ORM $orm ORM Class Instance
+         * TODO: Change to private
          */
         protected ORM $orm;
 
@@ -28,6 +43,7 @@
         /**
          * Model Reflection
          * @var ReflectionClass $reflection Associated Model Class Reflection
+         * TODO: change to Private
          */
         protected $reflection;
 
@@ -39,7 +55,12 @@
 
         /**-------------------------------------------------------------------------*/
         /**
-         * Constructor
+         * BaseRepository constructor.
+         *
+         * Initializes the repository by setting the ORM instance, determining if the class is inherited,
+         * and creating a ReflectionClass instance for the associated model.
+         *
+         * @param ORM $orm_instance The ORM instance to be used by the repository.
          */
         /**-------------------------------------------------------------------------*/
         public function __construct(ORM $orm_instance){
@@ -55,11 +76,25 @@
 
         /**-------------------------------------------------------------------------*/
         /**
-         * Init Method: Assigns reflection of model
+         * Dynamically retrieves a ReflectionClass instance for the associated model.
+         *
+         * This method uses a convention-based approach to find the corresponding model
+         * class. It assumes the model's class name is the repository's class name with
+         * "Repository" replaced by "Model". This process only runs if the
+         * `$isInherited` property is set to `true`.
+         *
+         * For example, if called from `App\Repositories\UserRepository`, it will attempt
+         * to find and reflect the `App\Repositories\UserModel` class.
+         *
+         * @return \ReflectionClass|null A ReflectionClass instance of the associated model, or null
+         * if the repository is not inherited.
+         * @throws \Exception If the associated model class cannot be found.
          */
         /**-------------------------------------------------------------------------*/
         private function getReflection(): ?object{
             if($this->isInherited === true){
+                // TODO: Ensure namespace check and verification
+
                 // Define Model Name
                 $modelName  = str_replace("Repository", "", get_called_class()) . "Model";
 
@@ -79,8 +114,14 @@
 
         /**-------------------------------------------------------------------------*/
         /**
-         * Get Table Name
-         * Retrieves the static table name property from child class
+         * Retrieves the table name associated with the repository.
+         *
+         * This method validates that the concrete repository class has a public
+         * static property named `$tableName` and that it is not empty. It then
+         * returns the value of this property.
+         *
+         * @return string The name of the database table.
+         * @throws \Exception If the `$tableName` property is not defined or is empty in the repository class.
          */
         /**-------------------------------------------------------------------------*/
         protected function getTableName(){
@@ -101,85 +142,16 @@
 
         /**-------------------------------------------------------------------------*/
         /**
-         * CRUD: Find By column
-         */
-        /**-------------------------------------------------------------------------*/
-        public function findBy(?array $columns){
-            /**
-             * Query ORM
-             */
-            $this->orm->find(
-                $this->getTableName(),
-                [],
-                $columns
-            );
-        }
-
-        /**-------------------------------------------------------------------------*/
-        /**
-         * CRUD: Find By with conditions WHERE
-         */
-        /**-------------------------------------------------------------------------*/
-        public function findByWhere(?array $conditions, ?array $columns=["*"]){
-            /**
-             * Query ORM
-             */
-            try {
-                $records = $this->orm->find(
-                    $this->getTableName(),
-                    $conditions,
-                    $columns
-                );
-            } catch (Exception $e){
-                var_dump($e);
-            }
-
-            /**
-             * Return records
-             */
-            return $records;
-        }
-
-        /**-------------------------------------------------------------------------*/
-        /**
-         * CRUD: Find by ID / PKey
-         */
-        /**-------------------------------------------------------------------------*/
-        public function findById(int $id){
-            /*
-            $this->orm->find(
-                $this->getTableName(),
-                ["id" => $id],
-                ["id", "name"],
-                "fetchColumn",
-                PDO::FETCH_COLUMN
-            );
-            */
-        }
-
-        /**-------------------------------------------------------------------------*/
-        /**
-         * CRUD Method: Get all records
-         */
-        /**-------------------------------------------------------------------------*/
-        public function getAll(){
-            /*
-            return $this->orm->find(
-                $this->getTableName(),
-                [],
-                ["*"],
-                "fetchAll",
-                PDO::FETCH_ASSOC
-            );
-            */
-        }
-
-        /**-------------------------------------------------------------------------*/
-        /**
-         * Get Model Properties
-         * 
-         * @return array
-         * @throws Exception
+         * Retrieves the names of all properties from the associated model.
+         *
+         * This private helper method uses a ReflectionClass instance to get all
+         * properties of the associated model and returns their names as a simple array
+         * of strings. This operation is only performed if the repository is inherited
+         * and a valid reflection object is available. It also makes all properties
+         * accessible before returning their names.
+         *
+         * @return string[] An array of strings representing the names of the model's properties.
+         * @throws \Exception If the repository is not inherited or the reflection object is null.
          */
         /**-------------------------------------------------------------------------*/
         private function getModelProps(){
@@ -195,11 +167,16 @@
 
         /**-------------------------------------------------------------------------*/
         /**
-         * Get Model Methods
-         * 
-         * @deprecated
-         * @return array
-         * @throws Exception
+         * Retrieves the names of all methods from the associated model.
+         *
+         * This private helper method uses a ReflectionClass instance to get all
+         * methods of the associated model and returns their names as a simple array
+         * of strings. This operation is only performed if the repository is inherited
+         * and a valid reflection object is available. It also makes all methods
+         * accessible before returning their names.
+         *
+         * @return string[] An array of strings representing the names of the model's methods.
+         * @throws \Exception If the repository is not inherited or the reflection object is null.
          */
         /**-------------------------------------------------------------------------*/
         private function getModelMethods(){
@@ -215,7 +192,15 @@
 
         /**-------------------------------------------------------------------------*/
         /**
-         * Find Parameters of the model constructor
+         * Retrieves the names of the constructor parameters for the associated model.
+         *
+         * This private helper method uses a ReflectionClass instance to get the
+         * constructor's parameters and returns their names as a simple array of strings.
+         * This operation is only performed if the repository is inherited and a
+         * valid reflection object is available.
+         *
+         * @return string[] An array of strings representing the parameter names of the model's constructor.
+         * @throws \Exception If the repository is not inherited or the reflection object is null.
          */
         /**-------------------------------------------------------------------------*/
         private function getModelParams(){
@@ -295,6 +280,15 @@
              */
             return $model;
         }
+
+        /**-------------------------------------------------------------------------*/
+        /**
+         * 
+         */
+        /**-------------------------------------------------------------------------*/
+
+
+        /**-------------------------------------------------------------------------*/
 
     }
 

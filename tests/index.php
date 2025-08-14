@@ -4,7 +4,9 @@
      * Connect to DB
      */
     require_once("bootstrap.php");
-    use mnaatjes\DataAccess\Database;
+
+use mnaatjes\DataAccess\BaseRepository;
+use mnaatjes\DataAccess\Database;
     use mnaatjes\DataAccess\ORM;
     use mnaatjes\DataAccess\utils\DataGenerator;
 
@@ -61,4 +63,6 @@
     //$one = $orm->find("users", ["id > 18", "id <= 20"]);
     //var_dump($one);
 
+    $repo = new BaseRepository($orm);
+    var_dump($repo);
 ?>
