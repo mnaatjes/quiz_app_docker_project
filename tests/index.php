@@ -55,6 +55,10 @@
     //$fail = $orm->findOrFail("users", [["id", "=", 12]]);
     //var_dump($fail)
 
-    
+    //$create = $orm->create("users", DataGenerator::getRandomUser());
+    //var_dump($create);
+
+    //$one = $orm->find("users", ["id > 18", "id <= 20"]);
+    //var_dump($one);
 
 ?>

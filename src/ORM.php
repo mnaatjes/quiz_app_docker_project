@@ -36,8 +36,19 @@
      * - Added join() method for INNER JOINS
 	 * - Added phpdocs comments for most methods
      * 
+	 * @since 1.2.3:
+	 * - created parseConditions() to parse all types of condition formats
+	 * - deployed parseConditions() to find()
 	 * 
-     * @version 1.2.2
+	 * @since 1.2.4:
+	 * - deployed parseConditions() to all CRUD methods that will utilize it
+	 * 
+	 * @since 1.2.5: 
+	 * - Unified parseConditions() with find() and update() to all use :placeholder and assoc array during binding
+	 * - Generates specific placeholder name for duplicate entries
+	 * - Prepends "set_:" to keys in SET Clause
+	 * 
+     * @version 1.2.5
      */
 	/**-------------------------------------------------------------------------*/
     class ORM {
@@ -143,7 +154,6 @@
                 $sql .= " LIMIT " . $limit;
             }
 			
-			var_dump($sql);
             /**
              * Prepare Statement
              * Set Bindings
@@ -281,76 +291,23 @@
 
             // Get setClause and Bindings
             foreach ($data as $column => $value) {
-                $setClause[]    = $column . " = ?";
-                $bindings[]     = $value;
+				$key 		 = ":set_" . $column;
+                $setClause[] = $column . " = " . $key;
+                $bindings 	 = array_merge([$key => $value], $bindings);
             }
 
             /**
-             * @var array $whereClause
-             */
-            $whereClause = [];
-
-            // Check if $conditions array of arrays
-            if(array_keys($conditions) !== range(0, count($conditions) - 1)){
-                $conditions = [$conditions];
-            }
-
-            // Build whereClause
-            foreach($conditions as $condition){
-                // Validate Condition Array
-                if(!is_array($condition)){
-                    throw new Exception("Unable to process Condition in Update(). Condition is NOT an array!");
-                }
-
-                // Determine array key format: assoc. v indexed
-                if(array_keys($condition) != range(0, count($condition) - 1)){
-                    /**
-                     * Conditions array is associative array:
-                     * - Collect keys
-                     * - Collect values
-                     * - Define default operator
-                     * - Generate WHERE clause
-                     * - Assign value bindings
-                     */
-                    // Loop and collect keys and values
-                    $keys   = array_keys($condition);
-                    $values = array_values($condition);
-
-                    // Assign default operator
-                    $operator = "=";
-
-                    // Assemble WHERE clause and bindings
-                    for($i = 0; $i < count($keys); $i++){
-                        $whereClause[]  = $keys[$i] . " " . $operator . " ?";
-                        $bindings[]     = $values[$i];
-                    }
-
-                } else {
-                    /**
-                     * Condition array is NOT an associative array
-                     */
-                    if(count($condition) === 2){
-                        // Determine count 2 (non-assoc array) to inject equals operator
-                        list($column, $value) = $condition;
-
-                        // Assign default operator
-                        $operator = "=";
-
-                    } elseif(count($condition) === 3){
-                        // Determine if length 3 and normal list
-                        list($column, $operator, $value) = $condition;
-                    }
-
-                    // Assemble WHERE clause and bindings
-                    $whereClause[]  = $column . " " . $operator . " ?";
-                    $bindings[]     = $value;
-                }
-            }
+			 * Collect WhereClause and Bindings
+			 */
+			$clauses 	 = $this->parseConditions($conditions);
+			$whereClause = isset($clauses["whereClause"]) ? $clauses["whereClause"] : [];
+			$bindings 	 = isset($clauses["bindings"]) ? array_merge($clauses["bindings"], $bindings) : $bindings;
 
             /**
              * Build SQL
              */
             $sql = "UPDATE " . $table_name . " SET " . implode(", ", $setClause) . " WHERE " . implode(" AND ", $whereClause);
+
             /**
              * Try: Execute with Bindings
              */
@@ -397,65 +354,11 @@
             $bindings = [];
 
             /**
-             * @var array $whereClause
-             */
-            $whereClause = [];
-
-            // Check if $conditions array of arrays
-            if(array_keys($conditions) !== range(0, count($conditions) - 1)){
-                $conditions = [$conditions];
-            }
-            
-            // Build whereClause
-            foreach($conditions as $condition){
-                // Validate Condition Array
-                if(!is_array($condition)){
-                    throw new Exception("Unable to process Condition in Delete(). Condition is NOT an array!");
-                }
-                // Determine array key format: assoc. v indexed
-                if(array_keys($condition) != range(0, count($condition) - 1)){
-                    /**
-                     * Conditions array is associative array:
-                     * - Collect keys
-                     * - Collect values
-                     * - Define default operator
-                     * - Generate WHERE clause
-                     * - Assign value bindings
-                     */
-                    // Loop and collect keys and values
-                    $keys   = array_keys($condition);
-                    $values = array_values($condition);
-
-                    // Assign default operator
-                    $operator = "=";
-
-                    // Assemble WHERE clause and bindings
-                    for($i = 0; $i < count($keys); $i++){
-                        $whereClause[]  = $keys[$i] . " " . $operator . " ?";
-                        $bindings[]     = $values[$i];
-                    }
-
-                } else {
-                    /**
-                     * Condition array is NOT an associative array
-                     */
-                    if(count($condition) === 2){
-                        // Determine count 2 (non-assoc array) to inject equals operator
-                        list($column, $value) = $condition;
-
-                        // Assign default operator
-                        $operator = "=";
-
-                    } elseif(count($condition) === 3){
-                        // Determine if length 3 and normal list
-                        list($column, $operator, $value) = $condition;
-                    }
-
-                    // Assemble WHERE clause and bindings
-                    $whereClause[]  = $column . " " . $operator . " ?";
-                    $bindings[]     = $value;
-                }
-            }
+			 * Collect WhereClause and Bindings
+			 */
+			$clauses 	 = $this->parseConditions($conditions);
+			$whereClause = isset($clauses["whereClause"]) ? $clauses["whereClause"] : [];
+			$bindings 	 = isset($clauses["bindings"]) ? $clauses["bindings"] : [];
 
             /**
              * Build SQL
@@ -501,65 +404,12 @@
          */
         /**-------------------------------------------------------------------------*/
         public function count(string $table_name, array $conditions=[]): int|bool{
-            // Declare Properties
-            $bindings    = [];
-            $whereClause = [];
-
-            // Check if $conditions array of arrays
-            if(array_keys($conditions) !== range(0, count($conditions) - 1)){
-                $conditions = [$conditions];
-            }
-            
-            // Build whereClause
-            foreach($conditions as $condition){
-                // Validate Condition Array
-                if(!is_array($condition)){
-                    throw new Exception("Unable to process Condition in Delete(). Condition is NOT an array!");
-                }
-                // Determine array key format: assoc. v indexed
-                if(array_keys($condition) != range(0, count($condition) - 1)){
-                    /**
-                     * Conditions array is associative array:
-                     * - Collect keys
-                     * - Collect values
-                     * - Define default operator
-                     * - Generate WHERE clause
-                     * - Assign value bindings
-                     */
-                    // Loop and collect keys and values
-                    $keys   = array_keys($condition);
-                    $values = array_values($condition);
-
-                    // Assign default operator
-                    $operator = "=";
-
-                    // Assemble WHERE clause and bindings
-                    for($i = 0; $i < count($keys); $i++){
-                        $whereClause[]  = $keys[$i] . " " . $operator . " ?";
-                        $bindings[]     = $values[$i];
-                    }
-
-                } else {
-                    /**
-                     * Condition array is NOT an associative array
-                     */
-                    if(count($condition) === 2){
-                        // Determine count 2 (non-assoc array) to inject equals operator
-                        list($column, $value) = $condition;
-
-                        // Assign default operator
-                        $operator = "=";
-
-                    } elseif(count($condition) === 3){
-                        // Determine if length 3 and normal list
-                        list($column, $operator, $value) = $condition;
-                    }
-
-                    // Assemble WHERE clause and bindings
-                    $whereClause[]  = $column . " " . $operator . " ?";
-                    $bindings[]     = $value;
-                }
-            }
+            /**
+			 * Collect WhereClause and Bindings
+			 */
+			$clauses 	 = $this->parseConditions($conditions);
+			$whereClause = isset($clauses["whereClause"]) ? $clauses["whereClause"] : [];
+			$bindings 	 = isset($clauses["bindings"]) ? $clauses["bindings"] : [];
 
             /**
              * Form SQL
@@ -850,7 +700,6 @@
 				}
                 // Form where clause with bindings
                 foreach($conditions as $condition){
-					var_dump($condition);
 					/**
 					 * @var array $acc Accumulator array for $clauses[key, operator, value]
 					 */
@@ -940,11 +789,25 @@
 					 * Loop accumulator array entries and push to $whereClause
 					 */
 					foreach($acc as $clause){
-						// Push to $whereClause
-						$whereClause[] = $clause["column"] . " " . $clause["operator"] . " :" . $clause["column"];
+						// Count bindings to check if placeholder already taken
+						$count = 0;
 
-						// Push to Bindings
-						$bindings[] = $clause["value"];
+						// Define placeholder key
+						$key = ":" . $clause["column"];
+
+						// Check if placeholder key already exists in Bindings
+						if(array_key_exists($key, $bindings)){
+							$key = ":" . $clause["column"] . "_" . $count;
+						}
+
+						// Push to $whereClause
+						$whereClause[] = $clause["column"] . " " . $clause["operator"] . " " . $key;
+
+						// Bind Key => Value to bindings
+						$bindings = array_merge([$key => $clause["value"]], $bindings);
+
+						// Increment Count
+						$count++;
 					}
 				}
 				/**
