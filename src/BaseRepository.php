@@ -4,7 +4,8 @@
     use ReflectionClass;
     use ReflectionProperty;
     use Exception;
-    use PDO;
+    use mnaatjes\DataAccess\ORM;
+    use mnaatjes\DataAccess\BaseModel;
     /**-------------------------------------------------------------------------*/
     /**
      * Base / Parent Repository Class
@@ -24,11 +25,13 @@
      * - Added all main comments to all existing methods
      * 
      * @since 1.1.1:
+     * - Added findAll() method that uses ORM
+     * - Changed to Abstract Class
      * 
      * @version 1.1.1
      */
     /**-------------------------------------------------------------------------*/
-    class BaseRepository {
+    abstract class BaseRepository {
         /**
          * @var ORM $orm ORM Class Instance
          * TODO: Change to private
@@ -53,6 +56,11 @@
          */
         protected static string $tableName = "";
 
+        /**
+         * @var BaseModel $model
+         */
+        protected $model;
+
         /**-------------------------------------------------------------------------*/
         /**
          * BaseRepository constructor.
@@ -63,9 +71,12 @@
          * @param ORM $orm_instance The ORM instance to be used by the repository.
          */
         /**-------------------------------------------------------------------------*/
-        public function __construct(ORM $orm_instance){
+        public function __construct(ORM $orm_instance, string $model_class){
             // Apply ORM Instance
             $this->orm = $orm_instance;
+
+            // Assign Model
+            $this->model = $model_class;
 
             // Assign is_inherited
             $this->isInherited = get_called_class() !== self::class;

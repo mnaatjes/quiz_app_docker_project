@@ -5,14 +5,14 @@
      */
     require_once("bootstrap.php");
 
-use mnaatjes\DataAccess\BaseRepository;
-use mnaatjes\DataAccess\Database;
+    use mnaatjes\DataAccess\BaseRepository;
+    use mnaatjes\DataAccess\Database;
     use mnaatjes\DataAccess\ORM;
+    use mnaatjes\DataAccess\TestModel;
     use mnaatjes\DataAccess\utils\DataGenerator;
 
-    $db = Database::getInstance();
-
-    $orm = new ORM($db);
+    $db     = Database::getInstance();
+    $orm    = new ORM($db);
 
     //var_dump(json_encode($orm->find("users"), JSON_PRETTY_PRINT));
     //var_dump($orm->showTables());
@@ -63,6 +63,6 @@ use mnaatjes\DataAccess\Database;
     //$one = $orm->find("users", ["id > 18", "id <= 20"]);
     //var_dump($one);
 
-    $repo = new BaseRepository($orm);
+    $repo = new TestRepository($orm, TestModel::class);
     var_dump($repo);
 ?>
