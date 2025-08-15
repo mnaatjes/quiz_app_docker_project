@@ -38,11 +38,17 @@ use ReflectionProperty;
     /**-------------------------------------------------------------------------*/
     abstract class BaseModel {
 
-        
-
         /**-------------------------------------------------------------------------*/
         /**
-         * BaseModel Constructor
+         * Constructs a new Model instance and populates its properties with initial data.
+         *
+         * This constructor initializes the model by calling the `fill()` method, which
+         * takes an associative array and assigns the corresponding values to the model's
+         * properties. This provides a convenient way to instantiate a model and
+         * hydrate it with data in a single step, typically from a database record
+         * or a user's form submission.
+         *
+         * @param array $data An associative array containing the initial property values for the model.
          */
         /**-------------------------------------------------------------------------*/
         public function __construct(array $data){
