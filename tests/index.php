@@ -6,8 +6,8 @@
      */
     use mnaatjes\DataAccess\Database;
     use mnaatjes\DataAccess\ORM;
-use mnaatjes\DataAccess\utils\TestModel;
-use mnaatjes\DataAccess\utils\TestRepository;
+    use mnaatjes\DataAccess\utils\TestModel;
+    use mnaatjes\DataAccess\utils\TestRepository;
 
     $db     = Database::getInstance();
     $orm    = new ORM($db);
@@ -34,11 +34,13 @@ use mnaatjes\DataAccess\utils\TestRepository;
     */
 
     //$results = $repo->findBy(["id > 300"]);
+    /*
     $results = $repo->findWith([
         "table" => "products",
         "ON" => "orders.product_id = products.id"
     ], ["*"], ["orders.product_id" => 1]);
     var_dump($results);
+    */
 
 
 
