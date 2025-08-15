@@ -37,15 +37,19 @@
      * - Created save() method
      * - Created all() method
      * - Completed and tested all() method
+     * - save() method returns a Model object on INSERT and UPDATE; NULL on failure
+     * - Tested save()
      * 
-     * @version 1.2.1
+     * @since 1.2.2:
+     * - 
+     * 
+     * @version 1.2.2
      * 
      */
     /**-------------------------------------------------------------------------*/
     abstract class BaseRepository {
         /**
          * @var ORM $orm ORM Class Instance
-         * TODO: Change to private
          */
         protected ORM $orm;
 
@@ -267,23 +271,153 @@
 
         /**-------------------------------------------------------------------------*/
         /**
-         * 
+         * Saves a model instance to the database, performing an "upsert" operation.
+         *
+         * This method checks if the provided model has an 'id' and either updates
+         * an existing record or creates a new one accordingly.
+         *
+         * @param BaseModel $model The model instance to be saved.
+         * @return BaseModel|int|null On a successful update, the original model instance is returned.
+         * On a successful insert, an integer representing the last inserted ID is returned.
+         * Returns null if the operation fails.
          */
         /**-------------------------------------------------------------------------*/
-        public function save(BaseModel $model){
+        public function save(BaseModel $model): NULL|int|BaseModel{
 
             /**
              * Validate Model has Primary Key (ID)
              */
-            
+            $data = $model->toArray();
+
+            if(array_key_exists("id", $data) && !is_null($data["id"])){
+                /**
+                 * UPDATE Existing Record
+                 * - Get id
+                 * - Strip id
+                 * - Perform query
+                 */
+                $id = $data["id"];
+                unset($data["id"]);
+
+                // Perform Insert Query
+                $affectedRows = $this->orm->update($this->tableName, $data, ["id" => $id]);
+
+                // Validate Return
+                if(is_int($affectedRows)){
+                    // Operation Succeeded: Return Model
+                    return $model;
+
+                } else {
+                    // Operation Failed
+                    return NULL;
+                }
+
+            } else {
+                /**
+                 * INSERT New Record
+                 */
+                $lastInsertId = $this->orm->create($this->tableName, $data);
+                
+                /**
+                 * Validate and return
+                 */
+                if(is_numeric($lastInsertId)){
+                    /**
+                     * Create new Model and return
+                     */
+                    $data["id"] = (int)$lastInsertId;
+                    return $this->hydrate($data);
+
+                } else {
+                    // Return on failure
+                    return NULL;
+                }
+                return is_numeric($lastInsertId) ? (int)$lastInsertId : NULL;
+            }
         }
 
         /**-------------------------------------------------------------------------*/
         /**
-         * 
+         * Finds model instances based on a set of conditions.
+         *
+         * This is a generic method for querying the database. It is used by other
+         * convenience methods, such as `findByForeignId`, to retrieve one or more
+         * records that match the given criteria.
+         *
+         * @param array $conditions An associative array where keys are column names
+         * and values are the corresponding values to match.
+         * Example: `['id' => 1, 'status' => 'active']`
+         * @return array|null An array of hydrated BaseModel instances on success,
+         * or null if no records are found.
          */
         /**-------------------------------------------------------------------------*/
-        public function findByForeignId(int $f_key){
+        public function findBy(array $conditions): ?array{
+
+            // Perform Query
+            $results = $this->orm->find($this->tableName, $conditions);
+
+            // Validate Response
+            if(is_array($results) && !empty($results)){
+                // Loop and assign as Models
+                $records = [];
+                foreach($results as $data){
+                    $records[] = $this->hydrate($data);
+                }
+
+                // Return Data
+                return $records;
+
+            } else {
+                // Return NULL
+                return NULL;
+            }
+        }
+
+        /**-------------------------------------------------------------------------*/
+        /**
+         * Finds a single model instance by a foreign key.
+         *
+         * This method is a convenient shortcut to the `findBy` method, specifically for
+         * retrieving a single model based on its foreign key and a corresponding value.
+         *
+         * @param string $f_key The name of the foreign key column (e.g., 'user_id', 'product_id').
+         * @param int $value The integer value of the foreign key to search for.
+         * @return BaseModel|null The hydrated BaseModel instance on success, or null if no record is found.
+         */
+        /**-------------------------------------------------------------------------*/
+        public function findByForeignId(string $f_key, int $value){
+            /**
+             * Use findBy
+             */
+            return $this->findBy([$f_key => $value]);
+        }
+
+        /**-------------------------------------------------------------------------*/
+        /**
+         * Finds model instances with joined data from related tables.
+         *
+         * This method leverages the ORM's join functionality to perform complex
+         * queries across multiple tables and returns the combined results.
+         *
+         * @param array $joins An array of join configurations. Each configuration should
+         * specify the table to join and the ON clause.
+         * Example: `[['table' => 'products', 'ON' => 'orders.product_id = products.id']]`
+         * @param array $selects An array of columns to select from the joined tables.
+         * Defaults to all columns (`*`).
+         * @param array $where An associative array of conditions for the WHERE clause.
+         * Example: `['orders.user_id' => 5]`
+         * @return array An array of associative arrays representing the joined result set,
+         * or an empty array if no results are found or the query fails.
+         */
+        /**-------------------------------------------------------------------------*/
+        public function findWith(array $joins, array $selects=["*"], array $where=[]): array{
+            $results = $this->orm->join($this->tableName, $joins, $selects, $where);
+            
+            if($results === false){
+                return [];
+            } else {
+                return $results;
+            }
 
         }
 

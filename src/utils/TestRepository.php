@@ -9,7 +9,7 @@
     /**-------------------------------------------------------------------------*/
     class TestRepository extends BaseRepository {
 
-        protected string $tableName     = "products";
+        protected string $tableName     = "orders";
         protected string $modelClass    = TestModel::class;
 
         /**-------------------------------------------------------------------------*/

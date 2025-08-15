@@ -6,7 +6,8 @@
      */
     use mnaatjes\DataAccess\Database;
     use mnaatjes\DataAccess\ORM;
-    use mnaatjes\DataAccess\utils\TestRepository;
+use mnaatjes\DataAccess\utils\TestModel;
+use mnaatjes\DataAccess\utils\TestRepository;
 
     $db     = Database::getInstance();
     $orm    = new ORM($db);
@@ -15,10 +16,29 @@
     //$record = $repo->findById(23);
     //var_dump($record);
 
-    $records = $repo->all();
-    var_dump($records[10]->getDescription());
+    //$records = $repo->all();
+    //var_dump($records[10]->getDescription());
     //var_dump($record->getDescription());
+    /*
+    $model = $repo->save(
+        $model = new TestModel([
+            //"id" => 4,
+            "name" => "A New Car",
+            "description" => "Helps you poop by strapping you in",
+            "price" => 99.99,
+            "stock_quantity" => 69,
+            "created_at" => "2025-08-14 13:52:03",
+            "updated_at" => "2025-08-14 23:52:03",
+    ]));
+    var_dump($model);
+    */
 
+    //$results = $repo->findBy(["id > 300"]);
+    $results = $repo->findWith([
+        "table" => "products",
+        "ON" => "orders.product_id = products.id"
+    ], ["*"], ["orders.product_id" => 1]);
+    var_dump($results);
 
 
 

@@ -547,6 +547,11 @@
          * - A string (e.g., `"users INNER JOIN posts ON posts.user_id = users.id"`).
          * - An associative array (e.g., `["table" => "posts", "on" => "posts.user_id = users.id"]`). The key should be the join keyword (e.g., 'on') and the value the condition.
          * @param array $selects An array of columns to select from the tables. Defaults to `["*"]`.
+		 * @param array $conditions An array of conditions to filter the count. Conditions can be:
+		 * - An associative array: `['column_name' => 'value']`.
+		 * - An indexed array with two elements: `['column_name', 'value']` (defaults to `=` operator).
+		 * - An indexed array with three elements: `['column_name', 'operator', 'value']`.
+		 * - An array of the above formats to apply multiple conditions with `AND`.
          * @param array $orderBy An associative array for ordering the results (e.g., `["column_name" => "DESC"]`).
          * @param int $limit The maximum number of rows to return. A value of `0` means no limit.
          * @param string $fetchMethod The PDO fetch method to use (e.g., `fetchAll`, `fetch`).
@@ -555,11 +560,17 @@
          * @throws \Exception If a join clause array is malformed and cannot be processed.
          */
         /**-------------------------------------------------------------------------*/
-        public function join(string $primaryTable, array $joins=[], array $selects=["*"], $orderBy=[], $limit=0, $fetchMethod="fetchAll", $fetchStyle=PDO::FETCH_ASSOC){
+        public function join(string $primaryTable, array $joins=[], array $selects=["*"], array $conditions=[], $orderBy=[], $limit=0, $fetchMethod="fetchAll", $fetchStyle=PDO::FETCH_ASSOC){
             /**
              * Parse Join Clauses
              */
             $joinClauses = [];
+
+			// Check dimensions of array
+			if(array_keys($joins) !== range(0, count($joins) - 1)){
+				$joins = [$joins];
+			}
+			// Loop arrays in joins
             foreach($joins as $join){
                 // Determine type of array
                 $isIndexed = array_keys($join) === range(0, count($join) - 1);
@@ -587,12 +598,36 @@
                 }
             }
 
+			/**
+			 * Parse Conditions
+			 */
+			$clauses 	 = $this->parseConditions($conditions);
+			$whereClause = isset($clauses["whereClause"]) ? $clauses["whereClause"] : [];
+			$bindings 	 = isset($clauses["bindings"]) ? $clauses["bindings"] : [];
+
             /**
              * Form SQL
              */
-            $sql = "SELECT " . implode(", ", $selects) . " FROM " . $primaryTable . " INNER JOIN " . implode(" INNER JOIN ", $joinClauses);
+            $sql = "SELECT " . implode(", ", $selects) . " FROM " . $primaryTable;
+			
+			/**
+			 * Append INNER JOIN Clause
+			 */
+			if(!empty($joinClauses)){
+				$sql .= " INNER JOIN " . implode(" INNER JOIN ", $joinClauses);
+			}
 
-            // Append OrderBy
+			/**
+			 * Append WHERE Clause
+			 */
+            if (!empty($whereClause)) {
+                // Append WHERE Clause if not empty
+                $sql .= " WHERE " . implode(" AND ", $whereClause);
+            }
+
+            /**
+			 * Append ORDER BY Clause
+			 */
             if(!empty($orderBy)){
                 // Grab Values
                 $orderClause = [];
@@ -604,15 +639,24 @@
                 $sql .= " ORDER BY " . implode(", ", $orderClause);
             }
 
-            // Append limit
+            /**
+			 * Append LIMIT clause
+			 */
             if($limit > 0){
                 $sql .= " LIMIT " . $limit;
             }
-            
             /**
              * Perform Query
              */
-            return $this->query($sql, [], $fetchMethod, $fetchStyle);
+            try {
+                // Prepare
+				$stmt = $this->db->prepare($sql);
+                $stmt->execute($bindings);
+				return call_user_func_array([$stmt, $fetchMethod], [$fetchStyle]);
+
+			} catch(\Exception $e){
+				return [];
+			}
         }
 
 		/**-------------------------------------------------------------------------*/
@@ -794,6 +838,11 @@
 
 						// Define placeholder key
 						$key = ":" . $clause["column"];
+
+						// Replace period character with underscore
+						if(strpos($key, ".")){
+							$key = str_replace(".", "_", $key);
+						}
 
 						// Check if placeholder key already exists in Bindings
 						if(array_key_exists($key, $bindings)){
