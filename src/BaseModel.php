@@ -22,23 +22,24 @@ use ReflectionProperty;
         public function __construct(array $data){
 
             // Populate Initial Properties
-            foreach($data as $key => $value){
-                // Declare Reflection Property
-                // TODO: Converter from or to camelCase 
-                // TODO: Validate property exists
-                $reflected_prop = new \ReflectionProperty($this, $key);
-
-                // Make accessible to define
-                $reflected_prop->setAccessible(true);
-
-                // Define prop
-                $reflected_prop->setValue($this, $value);
-            }
+            $this->fill($data);
         }
 
         /**-------------------------------------------------------------------------*/
         /**
-         * 
+         * Magic method to handle calls to undefined methods.
+         *
+         * This method acts as a generic getter and setter for class properties.
+         * It dynamically validates the method name and arguments, and then
+         * uses PHP's Reflection API to get or set a corresponding property.
+         *
+         * @param string $method_name The name of the method being called (e.g., 'getName', 'setAge').
+         * @param array<mixed> $arguments A numerically indexed array containing the parameters passed to the method.
+         *
+         * @return mixed Returns the value of the property for 'get' methods.
+         * @throws \InvalidArgumentException If the method prefix is not 'get' or 'set', or if the number of arguments is incorrect.
+         * @throws \BadMethodCallException If a corresponding property for the method name does not exist.
+         * @throws \ReflectionException If the reflection process fails.
          */
         /**-------------------------------------------------------------------------*/
         public function __call(string $method_name, $arguments){
@@ -49,10 +50,9 @@ use ReflectionProperty;
             $methodPrefix = strpos($method_name, 'get') === 0 ? 'get' : (strpos($method_name, 'set') === 0 ? 'set' : NULL);
 
             /**
-             * Normalized (lowercase) method name minus get | set
              * @var string $methodSuffix
              */
-            $methodSuffix = strtolower(substr($method_name, 3));
+            $methodSuffix = lcfirst(substr($method_name, 3));
 
             // Validate method prefix
             if(is_null($methodPrefix)){
@@ -69,7 +69,48 @@ use ReflectionProperty;
             } elseif($methodPrefix === "set" && count($arguments) !== 1){
                 throw new \InvalidArgumentException("Method: " . $method_name . "requires exactly ONE argument!");
             }
+            
+            /**
+             * Reflected Child Class
+             * @var \ReflectionClass $reflection
+             */
+            $reflection = new \ReflectionClass(get_called_class());
 
+            // Validate methodSuffix
+            if(!$reflection->hasProperty($methodSuffix)){
+                throw new \BadMethodCallException("Invalid get...() or set...() method: " . $method_name ."()");
+            }
+
+            /**
+             * Reflection Property in order to access value of inherited (child) class with private property
+             * @var \ReflectionProperty $reflectProp
+             */
+            $reflectProp = new \ReflectionProperty($this, $methodSuffix);
+
+            /**
+             * Execute Method Call:
+             * - get
+             * - set
+             */
+            if($methodPrefix === "get"){
+                // Return value from Reflected Property
+                return $reflectProp->getValue($this);
+
+            } elseif($methodPrefix === "set"){
+                // Get sanitized value
+                $sanitizedValue = htmlspecialchars($arguments[0], ENT_QUOTES | ENT_HTML5, 'UTF-8');
+
+                // Assign value
+                $reflectProp->setValue($this, $sanitizedValue);
+            }
+        }
+        
+        /**-------------------------------------------------------------------------*/
+        /**
+         * Get Class Property Names
+         */
+        /**-------------------------------------------------------------------------*/
+        private function getProperties(): array{
             /**
              * Reflected Child Class
              * @var \ReflectionClass $reflection
@@ -77,44 +118,92 @@ use ReflectionProperty;
             $reflection = new \ReflectionClass(get_called_class());
 
             /**
-             * Reflection Class Properties[name]; Assoc Array with Normalized (lowercase) value and property value
-             * @var array $properties
+             * Reflection Class Properties[name]; Assoc Array with normalized (lowercase), snake_case, and camelCase
              */
-            $properties = array_map(function($obj){
+            return array_map(function($obj){
                 $obj->setAccessible(true);
                 return [
-                    "normal" => strtolower($obj->getName()),
-                    "propName" => $obj->getName()
+                    "normal"    => strtolower($obj->getName()),
+                    "propName"  => $obj->getName(),
+                    "arrayName" =>  preg_replace('/(?<=[a-z])(?=[A-Z])/', '_', $obj->getName())
                 ];
-            }, $reflection->getProperties(ReflectionProperty::IS_PRIVATE));
-            
-            var_dump($properties);
-            /**
-             * Sanitize name and argument
-             */
-
-            /**
-             * Execute Method Call
-             */
-
+            }, $reflection->getProperties(\ReflectionProperty::IS_PRIVATE));
         }
-        
+
         /**-------------------------------------------------------------------------*/
         /**
-         * to Array
+         * Converts the model's private properties into an associative array.
+         *
+         * This method uses PHP's Reflection API to access all private properties
+         * of the child class. It then uses array_reduce to transform these properties
+         * into a single associative array where property names are converted from
+         * camelCase to snake_case, making them suitable for use with databases or APIs.
+         *
+         * The method is a standard pattern for serializing a model's data.
+         *
+         * @return array An associative array of the model's properties and their values, with keys in snake_case.
          */
         /**------------------------------------------------------------------------*/
         public function toArray(): array{
-            // TODO: Use reflection class
-            return get_object_vars($this);
+            /**
+             * Reflected Child Class
+             * @var \ReflectionClass $reflection
+             */
+            $reflection = new \ReflectionClass(get_called_class());
+
+            /**
+             * Return array of snake_case keyed properties
+             */
+            return array_reduce($reflection->getProperties(\ReflectionProperty::IS_PRIVATE), function($acc, $obj){
+                // Make property available
+                $obj->setAccessible(true);
+
+                // Format key to snake_case
+                $propName = preg_replace('/(?<=[a-z])(?=[A-Z])/', '_', $obj->getName());
+
+                // Return entry
+                $acc[$propName] = $obj->getValue($this);
+                return $acc;
+            }, []);
         }
 
         /**-------------------------------------------------------------------------*/
         /**
-         * from Array
+         * Fills the model's properties with data from an array.
+         *
+         * This method iterates through an associative array, and for each key,
+         * it attempts to set the corresponding public property on the model instance.
+         * It uses PHP's Reflection API to ensure that only properties that actually
+         * exist on the model are set, preventing "mass assignment" vulnerabilities.
+         * Keys in the input array that do not correspond to a property are safely ignored.
+         *
+         * @param array $data An associative array of data to assign to the model's properties.
+         * @return void
          */
         /**------------------------------------------------------------------------*/
-        public function fromArray(array $data){}
+        public function fill(array $data): void{
+            /**
+             * Reflected Child Class
+             * @var \ReflectionClass $reflection
+             */
+            $reflection = new \ReflectionClass(get_called_class());
+
+            /**
+             * Loop incomding data
+             */
+            foreach($data as $key => $value){
+                // Declare Reflection Property
+                $reflectProp = new \ReflectionProperty($this, $key);
+
+                // Validate Property
+                if(!$reflection->hasProperty($key)){
+                    continue;
+                }
+
+                // Define prop
+                $reflectProp->setValue($this, $value);
+            }
+        }
     }
 
 ?>

@@ -71,10 +71,16 @@
         "id"    => 45,
         "sku"   => "adsjkjkl3j4kljk2jk3343",
         "date"  => "2023-12-12 04:45:12",
-        "text"  => "Lorem Ipsum"
+        "text"  => "Lorem Ipsum",
+        "hamSandwich" => "Apollo"
     ]);
     //var_dump($model);
 
-    $model->getBanana();
-    var_dump($model->toArray());
+    $model->setHamSandwich("Apollo is a Sploooty Boy");
+    //var_dump($model->getHamSandwich());
+    //var_dump($prop_value);
+    //var_dump($model->toArray());
+
+    $arr = $model->toArray();
+    var_dump($arr);
 ?>
