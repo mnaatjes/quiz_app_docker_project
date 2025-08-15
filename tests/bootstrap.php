@@ -4,29 +4,22 @@
      */
     
     spl_autoload_register(function ($className) {
+        $namespaces = [
+            'mnaatjes\\DataAccess\\' => __DIR__ . '/../src/',
+            'mnaatjes\\DataAccess\\Tests\\' => __DIR__ . '/'
+        ];
 
-        // Define the namespace prefix that your autoloader handles
-        $prefix = 'mnaatjes\\DataAccess\\';
+        foreach ($namespaces as $prefix => $baseDir) {
+            $len = strlen($prefix);
+            if (strncmp($prefix, $className, $len) === 0) {
+                $relativeClass = substr($className, $len);
+                $file = $baseDir . str_replace('\\', '/', $relativeClass) . '.php';
 
-        // Define the base directory for your classes
-        $baseDir = __DIR__ . '/../src/';
-
-        // Check if the class name has the same namespace prefix
-        $len = strlen($prefix);
-        if (strncmp($prefix, $className, $len) !== 0) {
-            // No, it doesn't. Let another autoloader handle it.
-            return;
-        }
-
-        // Get the relative class name by removing the namespace prefix
-        $relativeClass = substr($className, $len);
-
-        // Replace the namespace separator with the directory separator and append `.php`
-        $file = $baseDir . str_replace('\\', '/', $relativeClass) . '.php';
-
-        // Check if the file exists
-        if (file_exists($file)) {
-            require $file;
+                if (file_exists($file)) {
+                    require $file;
+                    return;
+                }
+            }
         }
     });
 

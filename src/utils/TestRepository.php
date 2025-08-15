@@ -1,7 +1,6 @@
 <?php
-
+    namespace mnaatjes\DataAccess\utils;
     use mnaatjes\DataAccess\BaseRepository;
-    use mnaatjes\DataAccess\ORM;
 
     /**-------------------------------------------------------------------------*/
     /**
@@ -10,8 +9,8 @@
     /**-------------------------------------------------------------------------*/
     class TestRepository extends BaseRepository {
 
-        protected string $tableName     = "users";
-        protected string $modelClass    = "TestModel";
+        protected string $tableName     = "products";
+        protected string $modelClass    = TestModel::class;
 
         /**-------------------------------------------------------------------------*/
         /**

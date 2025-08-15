@@ -2,8 +2,7 @@
     /**
      * Declare Namespace
      */
-    namespace mnaatjes\DataAccess\utils;
-    use RuntimeException;
+    namespace mnaatjes\DataAccess\Utils;
     
     /**
      * DotEnv (.env) Class for loading Environment Variables
@@ -30,12 +29,12 @@
          * @static
          * @param string $path
          * @return 
-         * @throws RuntimeException if .env file not readable
+         * @throws \RuntimeException if .env file not readable
          */
         public static function load(string $path){
             // Validate path
             if(!is_readable($path)){
-                throw new RuntimeException("Unable to read file: " . $path);
+                throw new \RuntimeException("Unable to read file: " . $path);
             }
 
             /**

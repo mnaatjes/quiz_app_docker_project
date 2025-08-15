@@ -1,11 +1,7 @@
 <?php
 
     namespace mnaatjes\DataAccess;
-    use ReflectionClass;
-    use ReflectionProperty;
-    use Exception;
     use mnaatjes\DataAccess\ORM;
-    use mnaatjes\DataAccess\BaseModel;
     /**-------------------------------------------------------------------------*/
     /**
      * Base / Parent Repository Class
@@ -29,7 +25,17 @@
      * - Removed isInherited property (abstract classes MUST be inherited)
      * 
      * 
-     * @version 1.1.1
+     * @since 1.1.1:
+     * - Added hydrate() and dehydrate() methods
+     * - Added validation methods for invocation of model classes
+     * - Enforced $tableName declaration
+     * - Enforced $className declaration
+     * 
+     * @since 1.2.0:
+     * - 
+     * 
+     * @version 1.2.0
+     * 
      */
     /**-------------------------------------------------------------------------*/
     abstract class BaseRepository {
@@ -43,19 +49,13 @@
          * Table associated with Repository; Overridden by child class
          * @var string $tableName String from Child Repository Class
          */
-        protected string $tableName = "";
+        protected string $tableName;
 
         /**
          * Name of Model associated with Repository; Overridden by Child Class
          * @var string $modelClass 
          */
         protected string $modelClass;
-
-        /**
-         * Reflection of Model Class
-         * @var ReflectionClass $reflection
-         */
-        protected ReflectionClass $reflection;
 
         /**-------------------------------------------------------------------------*/
         /**
@@ -73,11 +73,19 @@
 
             // Enforce properties of modelClass and TableName
             if (empty($this->modelClass) || empty($this->tableName)) {
-                throw new Exception("Repository must define a model and table name.");
+                throw new \Exception("Repository must define a model and table name.");
             }
 
-            // Declare Reflection of model
-            //$this->reflection = new ReflectionClass($this->modelClass);
+            // Validate Model Class as defined in Child Class
+            $this->validateModelClass();
+
+            // Validate BaseModel Inheritance
+            $this->validateModelInheritance();
+
+            // Validate tablename entered
+            if(is_null($this->tableName) || empty(trim($this->tableName))){
+                throw new \Exception("Table Name must be defined in Repository Class!");
+            }
         }
 
         /**-------------------------------------------------------------------------*/
@@ -89,45 +97,93 @@
 
         /**-------------------------------------------------------------------------*/
         /**
-         * Returns string of model class name
+         * Validates the model class.
+         *
+         * This private method ensures that the `$modelClass` property is a valid,
+         * instantiable class. It attempts to create a ReflectionClass instance
+         * and throws a custom exception if the class does not exist or is invalid.
+         *
+         * @return void
+         *
+         * @throws \Exception If the model class namespace is invalid or the class does not exist.
          */
         /**-------------------------------------------------------------------------*/
-        protected function getModelClass():string {return $this->modelClass;}
+        public function hydrate(array $data) {
+            // Get ModelClass name
+            $modelName = $this->modelClass;
+
+            // return hydrated model
+            return new $modelName($data);
+        }
 
         /**-------------------------------------------------------------------------*/
         /**
-         * 
+         * Validates the model class.
+         *
+         * This private method ensures that the `$modelClass` property is a valid,
+         * instantiable class. It attempts to create a ReflectionClass instance
+         * and throws a custom exception if the class does not exist or is invalid.
+         *
+         * @return void
+         *
+         * @throws \Exception If the model class namespace is invalid or the class does not exist.
          */
         /**-------------------------------------------------------------------------*/
-        private function getModelProps(){}
+        public function dehydrate(BaseModel $model){
+            return $model->toArray();
+        }
 
         /**-------------------------------------------------------------------------*/
         /**
-         * 
+         * Validates the model class.
+         *
+         * This private method ensures that the `$modelClass` property is a valid,
+         * instantiable class. It attempts to create a ReflectionClass instance
+         * and throws a custom exception if the class does not exist or is invalid.
+         *
+         * @return void
+         *
+         * @throws \Exception If the model class namespace is invalid or the class does not exist.
          */
         /**-------------------------------------------------------------------------*/
-        private function getModelMethods(){}
+        private function validateModelClass(): void{
+            /**
+             * Attempt to instantiate Reflection Class with child modelClass property
+             */
+            try {
+                /**
+                 * Reflection of Model Class
+                 * @var \ReflectionClass $reflection
+                 */
+                $reflection = new \ReflectionClass($this->modelClass);
+            } catch(\Exception $e){
+                // Throw error message and exception
+                throw new \Exception("Error! Invalid Model Class Namespace! Use format TestModel::class! Error: ". $e);
+            }            
+        }
 
         /**-------------------------------------------------------------------------*/
         /**
-         * Retrieves the names of the constructor parameters for the associated model.
+         * Validates the model class.
+         *
+         * This private method ensures that the `$modelClass` property is a valid,
+         * instantiable class. It attempts to create a ReflectionClass instance
+         * and throws a custom exception if the class does not exist or is invalid.
+         *
+         * @return void
+         *
+         * @throws \Exception If the model class namespace is invalid or the class does not exist.
          */
         /**-------------------------------------------------------------------------*/
-        private function getModelParams(){}
+        private function validateModelInheritance(){
+            // Get modelClass value
+            $modelClass = $this->modelClass;
 
-        /**-------------------------------------------------------------------------*/
-        /**
-         * Hydrate
-         */
-        /**-------------------------------------------------------------------------*/
-        public function hydrate($record){}
-
-        /**-------------------------------------------------------------------------*/
-        /**
-         * 
-         */
-        /**-------------------------------------------------------------------------*/
-
+            // Validate child inherits BaseModel
+            if(!is_subclass_of($modelClass, BaseModel::class)){
+                throw new \Exception("Model Class MUST extend BaseModel abstract Class");
+            }
+        }
 
         /**-------------------------------------------------------------------------*/
 

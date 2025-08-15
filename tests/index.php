@@ -1,16 +1,13 @@
 <?php
 
+    require_once("bootstrap.php");
     /**
      * Connect to DB
      */
-    require_once("bootstrap.php");
-    require_once("tests/utils/TestModel.php");
-    require_once("tests/utils/TestRepository.php");
-    use mnaatjes\DataAccess\BaseRepository;
     use mnaatjes\DataAccess\Database;
     use mnaatjes\DataAccess\ORM;
-    use mnaatjes\DataAccess\TestModel;
-    use mnaatjes\DataAccess\utils\DataGenerator;
+    use mnaatjes\DataAccess\utils\TestRepository;
+    use mnaatjes\DataAccess\utils\TestModel;
 
     $db     = Database::getInstance();
     $orm    = new ORM($db);
@@ -67,6 +64,7 @@
     $repo = new TestRepository($orm);
     //var_dump($repo);
 
+    /*
     $model = new TestModel([
         "id"    => 45,
         "sku"   => "adsjkjkl3j4kljk2jk3343",
@@ -74,13 +72,22 @@
         "text"  => "Lorem Ipsum",
         "hamSandwich" => "Apollo"
     ]);
+    */
     //var_dump($model);
-
-    $model->setHamSandwich("Apollo is a Sploooty Boy");
+    //$model->setHamSandwich("Apollo is a Sploooty Boy");
     //var_dump($model->getHamSandwich());
     //var_dump($prop_value);
     //var_dump($model->toArray());
+    //$arr = $model->toArray();
+/*
+    $model = $repo->hydrate([
+        "id"    => 45,
+        "sku"   => "adsjkjkl3j4kljk2jk3343",
+        "date"  => "2023-12-12 04:45:12",
+        "text"  => "Lorem Ipsum",
+        "hamSandwich" => "Apollo"
+    ]);
+*/  
 
-    $arr = $model->toArray();
-    var_dump($arr);
+
 ?>
