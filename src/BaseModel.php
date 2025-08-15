@@ -31,7 +31,9 @@ use ReflectionProperty;
      * - Created toArray Method
      * - Tested toArray Method
      * 
-     * @version 1.2.0
+     * @version 1.2.0:
+     * - getProperties() method no longer needed; not removed
+     * - Testing integration with BaseRepository Class
      */
     /**-------------------------------------------------------------------------*/
     abstract class BaseModel {
