@@ -4,7 +4,8 @@
      * Connect to DB
      */
     require_once("bootstrap.php");
-
+    require_once("tests/utils/TestModel.php");
+    require_once("tests/utils/TestRepository.php");
     use mnaatjes\DataAccess\BaseRepository;
     use mnaatjes\DataAccess\Database;
     use mnaatjes\DataAccess\ORM;
@@ -63,6 +64,14 @@
     //$one = $orm->find("users", ["id > 18", "id <= 20"]);
     //var_dump($one);
 
-    $repo = new TestRepository($orm, TestModel::class);
-    var_dump($repo);
+    $repo = new TestRepository($orm);
+    //var_dump($repo);
+
+    $model = new TestModel([
+        "id"    => 45,
+        "sku"   => "adsjkjkl3j4kljk2jk3343",
+        "date"  => "2023-12-12 04:45:12",
+        "text"  => "Lorem Ipsum"
+    ]);
+    var_dump($model);
 ?>

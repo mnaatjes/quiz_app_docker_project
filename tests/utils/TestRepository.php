@@ -9,6 +9,10 @@
      */
     /**-------------------------------------------------------------------------*/
     class TestRepository extends BaseRepository {
+
+        protected string $tableName     = "users";
+        protected string $modelClass    = "TestModel";
+
         /**-------------------------------------------------------------------------*/
         /**
          * 
