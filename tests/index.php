@@ -7,10 +7,24 @@
     use mnaatjes\DataAccess\Database;
     use mnaatjes\DataAccess\ORM;
     use mnaatjes\DataAccess\utils\TestRepository;
-    use mnaatjes\DataAccess\utils\TestModel;
 
     $db     = Database::getInstance();
     $orm    = new ORM($db);
+
+    $repo   = new TestRepository($orm);
+    //$record = $repo->findById(23);
+    //var_dump($record);
+
+    $records = $repo->all();
+    var_dump($records[10]->getDescription());
+    //var_dump($record->getDescription());
+
+
+
+
+
+
+
 
     //var_dump(json_encode($orm->find("users"), JSON_PRETTY_PRINT));
     //var_dump($orm->showTables());
@@ -60,8 +74,6 @@
 
     //$one = $orm->find("users", ["id > 18", "id <= 20"]);
     //var_dump($one);
-
-    $repo = new TestRepository($orm);
     //var_dump($repo);
 
     /*

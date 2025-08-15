@@ -1,9 +1,7 @@
 <?php
 
     namespace mnaatjes\DataAccess;
-
-use Exception;
-use ReflectionProperty;
+    use ReflectionProperty;
 
     /**-------------------------------------------------------------------------*/
     /**
@@ -31,12 +29,33 @@ use ReflectionProperty;
      * - Created toArray Method
      * - Tested toArray Method
      * 
-     * @version 1.2.0:
+     * @since 1.2.0:
      * - getProperties() method no longer needed; not removed
      * - Testing integration with BaseRepository Class
+     * 
+     * @since 1.2.1:
+     * - Added snake to camel conversion method
+     * - Added snake to camel $key conversion in fill()
+     * 
+     * @since 1.2.2:
+     * - Added protected $id to enforce primary key assignment
+     * 
+     * @since 1.2.3:
+     * - 
+     * 
+     * @version 1.2.3
      */
     /**-------------------------------------------------------------------------*/
     abstract class BaseModel {
+
+        /**
+         * The unique identifier (primary key) for the model.
+         * This property is explicitly declared here to satisfy the contract of the
+         * IdentifiableModelInterface.
+         *
+         * @var int|null
+         */
+        private ?int $id = null;
 
         /**-------------------------------------------------------------------------*/
         /**
@@ -223,7 +242,10 @@ use ReflectionProperty;
             /**
              * Loop incomding data
              */
-            foreach($data as $key => $value){
+            foreach($data as $input => $value){
+                // Convert Key to camelCase
+                $key = $this->snakeToCamel($input);
+
                 // Declare Reflection Property
                 $reflectProp = new \ReflectionProperty($this, $key);
 
@@ -236,6 +258,51 @@ use ReflectionProperty;
                 $reflectProp->setValue($this, $value);
             }
         }
+
+        /**------------------------------------------------------------------------*/
+        /**
+         * Converts a snake_case string to camelCase.
+         *
+         * This method splits a string by underscores, capitalizes the first letter of
+         * each subsequent word, and then joins them to create a camelCase string.
+         * The first word remains in its original case.
+         *
+         * @param string $input The snake_case string to be converted.
+         * @return string The converted camelCase string.
+         */
+        /**------------------------------------------------------------------------*/
+        private function snakeToCamel(string $input){
+            // Split the string into an array of words using the underscore as a delimiter.
+            $words = explode('_', $input);
+
+            // If there's only one word, return it as is.
+            if (count($words) <= 1) {
+                return $input;
+            }
+
+            // Initialize an empty array to hold the new words.
+            $camelCasedWords = [];
+
+            // The first word remains lowercase.
+            $camelCasedWords[] = array_shift($words);
+
+            // Loop through the rest of the words.
+            foreach ($words as $word) {
+                // Capitalize the first letter of each subsequent word.
+                $camelCasedWords[] = ucfirst($word);
+            }
+
+            // Join the words back together to form the final camelCase string.
+            return implode('', $camelCasedWords);
+        }
+
+        /**-------------------------------------------------------------------------*/
+        /**
+         * Update Model
+         * @return BaseModel
+         */
+        /**-------------------------------------------------------------------------*/
+        public function update(array $data){}
     }
 
 ?>

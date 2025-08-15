@@ -5,10 +5,12 @@
     class TestModel extends BaseModel {
 
         private $id;
-        private $sku;
-        private $date;
-        private $text;
-        private $hamSandwich;
+        private $name;
+        private $description;
+        private $price;
+        private $stockQuantity;
+        private $createdAt;
+        private $updatedAt;
     }
 
 ?>
