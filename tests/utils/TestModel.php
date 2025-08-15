@@ -3,10 +3,11 @@
 
     class TestModel extends BaseModel {
 
-        public $id;
-        public $sku;
-        public $date;
-        public $text;
+        private $id;
+        private $sku;
+        private $date;
+        private $text;
+        private $hamSandwich;
         /**-------------------------------------------------------------------------*/
         /**
          * 

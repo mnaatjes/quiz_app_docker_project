@@ -73,5 +73,8 @@
         "date"  => "2023-12-12 04:45:12",
         "text"  => "Lorem Ipsum"
     ]);
-    var_dump($model);
+    //var_dump($model);
+
+    $model->getBanana();
+    var_dump($model->toArray());
 ?>
