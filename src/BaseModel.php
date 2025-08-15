@@ -8,6 +8,30 @@ use ReflectionProperty;
     /**-------------------------------------------------------------------------*/
     /**
      * Base Model Abstract Class
+     * 
+     * @since 1.0.0: 
+     * - Created
+     * - Added getProperties()
+     * - Created __call() magic method
+     * - Utilized array of properties to validate __call()
+     * 
+     * @since 1.0.1:
+     * - Finished __call()
+     * - Tested __call()
+     * 
+     * @since 1.1.0: 
+     * - Changed __call() method to validate via Reflection->hasProperty()
+     * - Tested
+     * 
+     * @since 1.1.1:
+     * - Created fill() method
+     * - Changed __construct to use fill() method
+     * 
+     * @since 1.1.2:
+     * - Created toArray Method
+     * - Tested toArray Method
+     * 
+     * @version 1.2.0
      */
     /**-------------------------------------------------------------------------*/
     abstract class BaseModel {
