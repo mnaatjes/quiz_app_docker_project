@@ -1,6 +1,7 @@
 <?php
-    namespace mnaatjes\App\Utils;
-    use mnaatjes\App\DataAccess\BaseRepository;
+    namespace App\Repositories;
+    use App\Models\TestModel;
+    use mnaatjes\mvcFramework\DataAccess\BaseRepository;
 
     /**-------------------------------------------------------------------------*/
     /**

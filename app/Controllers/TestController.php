@@ -1,8 +1,8 @@
 <?php
-    namespace mnaatjes\App\Utils;
-    use mnaatjes\App\MVCCore\BaseController;
-    use mnaatjes\App\HttpCore\HttpRequest;
-    use mnaatjes\App\HttpCore\HttpResponse;
+    namespace App\Controllers;
+    use mnaatjes\mvcFramework\MVCCore\BaseController;
+    use mnaatjes\mvcFramework\HttpCore\HttpRequest;
+    use mnaatjes\mvcFramework\HttpCore\HttpResponse;
 
     /**-------------------------------------------------------------------------*/
     /**

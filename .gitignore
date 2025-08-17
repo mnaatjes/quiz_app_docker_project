@@ -1,0 +1,3 @@
+# Ignore Development Compose files
+composer.lock
+vendor/

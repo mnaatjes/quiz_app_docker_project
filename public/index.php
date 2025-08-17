@@ -31,7 +31,7 @@
     /**
      * Require Autoloader from Project
      */
-    //require __DIR__ . "/../vendor/autoload.php";
+    require __DIR__ . "/../vendor/autoload.php";
 
     /**
      * Load Environment Variables: 
@@ -39,10 +39,12 @@
      * - Find location ~/config/.env
      * - Load into $_ENV
      */
-    //require __DIR__ . "/../config/.env";
+    use mnaatjes\mvcFramework\Utils\DotEnv;
+    DotEnv::load(__DIR__ . "/../config/.env");
 
     /**
-     * @var $container
+     * Collect Container instance from Bootstrap
+     * @var mnaatjes\mvcFramework\Container $container
      */
     $container = require __DIR__ . "/../../mvc-framework/bootstrap.php";
 
@@ -50,6 +52,35 @@
      * Require config/services.php
      */
     require ROOT_DIR . "/config/services.php";
+    
+    /**
+     * Declare Request, Response, and Router Objects
+     */
+    use mnaatjes\mvcFramework\HttpCore\HttpRequest;
+    use mnaatjes\mvcFramework\HttpCore\HttpResponse;
+    use mnaatjes\mvcFramework\HttpCore\Router;
+    /**
+     * @var HttpRequest $req
+     */
+    $req = new HttpRequest();
+    /**
+     * @var HttpResponse $res
+     */
+    $res = new HttpResponse();
 
-    var_dump($container);
+    /**
+     * Declare Router and pass on $container instance
+     * @var mnaatjes\mvcFramework\HttpCore\Router $router
+     */
+    $router = new Router($container);
+
+    /**
+     * Include All Routes files
+     */
+    require_once(ROOT_DIR . "/routes/examples.php");
+
+    /**
+     * Dispatch Router
+     */
+    $router->dispatch($req, $res);
 ?>

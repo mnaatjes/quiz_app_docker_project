@@ -1,6 +1,6 @@
 <?php
-    namespace mnaatjes\App\Utils;
-    use mnaatjes\App\MVCCore\BaseModel;
+    namespace App\Models;
+    use mnaatjes\mvcFramework\MVCCore\BaseModel;
 
     class TestModel extends BaseModel {
 
