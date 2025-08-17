@@ -1,8 +1,8 @@
 <?php
 
-use App\Controllers\TestController;
-use App\Repositories\TestRepository;
-use mnaatjes\mvcFramework\DataAccess\Database;
+    use App\Controllers\TestController;
+    use App\Repositories\TestRepository;
+    use mnaatjes\mvcFramework\DataAccess\Database;
     use mnaatjes\mvcFramework\DataAccess\ORM;
     /**
      * Declare DB Instance
