@@ -5,4 +5,3 @@ db_data/
 apache/
 php-config/
 php-fpm/
-docker-compose.yml
