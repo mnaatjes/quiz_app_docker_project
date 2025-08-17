@@ -1,6 +1,8 @@
 # Ignore DB Service
 db_data/
 
-# Ignore depreciated code
-app/src/__controllers
-app/src/__models
+# Ignore docker environment
+apache/
+php-config/
+php-fpm/
+docker-compose.yml
