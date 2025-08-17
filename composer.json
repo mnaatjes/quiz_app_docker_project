@@ -1,0 +1,20 @@
+{
+  "name": "mnaatjes/mvc-skeleton",
+  "description": "The skeleton for a new app using the mnaatjes/mvc-framework.",
+  "repositories": [
+    {
+      "type": "path",
+      "url": "../mvc-framework"
+    }
+  ],
+  "require": {
+    "mnaatjes/mvc-framework": "dev-package_prep"
+  },
+  "autoload": {
+    "psr-4": {
+      "App\\": "app/"
+    }
+  },
+  "minimum-stability": "dev",
+  "prefer-stable": true
+}
