@@ -1,6 +1,12 @@
 {
   "name": "mnaatjes/mvc-skeleton",
   "description": "The skeleton for a new app using the mnaatjes/mvc-framework.",
+  "repositories": [
+    {
+      "type": "vcs",
+      "url": "https://github.com/mnaatjes/mvc-framework.git"
+    }
+  ],
   "require": {
     "mnaatjes/mvc-framework": "^1.0"
   },
@@ -9,6 +15,5 @@
       "App\\": "app/"
     }
   },
-  "minimum-stability": "dev",
   "prefer-stable": true
 }
