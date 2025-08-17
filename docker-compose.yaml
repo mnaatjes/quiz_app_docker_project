@@ -26,8 +26,6 @@ services:
       # Mount same html direcory to PHP-FPM Document Root
       - ./php-config/php-custom-limits.ini:/usr/local/etc/php/conf.d/php-custom-limits.ini
       - ./public:/var/www/html # Main public directory
-      - ./app:/var/www/app # Add application directory to php 
-      - ./tests:/app/tests # Testing Environment
     restart: unless-stopped
 
   # Database Service
