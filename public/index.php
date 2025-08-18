@@ -31,7 +31,10 @@
     /**
      * Require Autoloader from Project
      */
-    require __DIR__ . "/../vendor/autoload.php";
+    define("FRAMEWORK_DIR", __DIR__ . "/../vendor/mnaatjes/mvc-framework");
+    define("APP_DIR", dirname(__DIR__));
+    
+    require_once FRAMEWORK_DIR . "/../../autoload.php";
 
     /**
      * Load Environment Variables: 
@@ -40,18 +43,18 @@
      * - Load into $_ENV
      */
     use mnaatjes\mvcFramework\Utils\DotEnv;
-    DotEnv::load(__DIR__ . "/../config/.env");
+    DotEnv::load(APP_DIR . "/config/.env");
 
     /**
      * Collect Container instance from Bootstrap
      * @var mnaatjes\mvcFramework\Container $container
      */
-    $container = require __DIR__ . "/../../mvc-framework/bootstrap.php";
+    $container = require_once FRAMEWORK_DIR . "/bootstrap.php";
 
     /**
      * Require config/services.php
      */
-    require ROOT_DIR . "/config/services.php";
+    require APP_DIR . "/config/services.php";
     
     /**
      * Declare Request, Response, and Router Objects
@@ -73,11 +76,12 @@
      * @var mnaatjes\mvcFramework\HttpCore\Router $router
      */
     $router = new Router($container);
+    $router->get("/", function(){echo "Hello World";});
 
     /**
      * Include All Routes files
      */
-    require_once(ROOT_DIR . "/routes/examples.php");
+    //require_once(APP_DIR . "/routes/examples.php");
 
     /**
      * Dispatch Router
