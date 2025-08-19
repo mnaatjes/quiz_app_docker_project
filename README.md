@@ -1,6 +1,11 @@
 # 1.0 Configuration
 
 * **LastUpdate:** 08-18-2025
+* **Since:** 1.0.0:
+  * Modified php/Dockerfile
+  * Added php/php.ini
+  * Updated docker-compose.yml
+* **Version:** 1.1.0
 
 ## 1.1 Docker-Compose
 
@@ -46,6 +51,8 @@ services:
     environment:
       PMA_HOST: mysql
       MYSQL_ROOT_PASSWORD: mysecretpassword
+      UPLOAD_LIMIT: 50M
+      MEMORY_LIMIT: 256M
     ports:
       - "8080:80"
     depends_on:
@@ -59,6 +66,9 @@ volumes:
 
 ```bash
 FROM php:8.1-fpm
+
+# Copy custom php.ini file
+COPY php.ini /usr/local/etc/php/conf.d/
 
 # Install system dependencies and PHP extensions
 RUN apt-get update && apt-get install -y \
@@ -108,3 +118,11 @@ RUN sed -i 's/^#LoadModule\ rewrite_module/LoadModule\ rewrite_module/' /usr/loc
 </VirtualHost>
 ```
 
+## 1.5 php/php.ini
+
+```bash
+upload_max_filesize = 50M
+post_max_size = 50M
+memory_limit = 256M
+max_execution_time = 300
+```

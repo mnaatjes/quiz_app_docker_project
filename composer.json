@@ -8,7 +8,7 @@
     }
   ],
   "require": {
-    "mnaatjes/mvc-framework": "^1.0"
+    "mnaatjes/mvc-framework": "dev-main"
   },
   "autoload": {
     "psr-4": {

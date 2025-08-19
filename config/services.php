@@ -1,8 +1,10 @@
 <?php
 
     use App\Controllers\TestController;
-    use App\Repositories\TestRepository;
-    use mnaatjes\mvcFramework\DataAccess\Database;
+use App\Controllers\UserController;
+use App\Repositories\TestRepository;
+use App\Repositories\UserRepository;
+use mnaatjes\mvcFramework\DataAccess\Database;
     use mnaatjes\mvcFramework\DataAccess\ORM;
     /**
      * Declare DB Instance
@@ -25,6 +27,13 @@
      */
     $container->set(TestController::class, function($container){
         return new TestController(new TestRepository($container->get("orm")));
+    });
+
+    /**
+     * User Dependencies
+     */
+    $container->set(UserController::class, function($container){
+        return new UserController(new UserRepository($container->get("orm")));
     });
     
     

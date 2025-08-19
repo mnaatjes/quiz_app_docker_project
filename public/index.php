@@ -69,19 +69,19 @@
     /**
      * @var HttpResponse $res
      */
-    $res = new HttpResponse();
+    $res = new HttpResponse(__DIR__ . "/../app/Views/");
 
     /**
      * Declare Router and pass on $container instance
      * @var mnaatjes\mvcFramework\HttpCore\Router $router
      */
     $router = new Router($container);
-    $router->get("/", function(){echo "Hello World";});
 
     /**
      * Include All Routes files
      */
-    //require_once(APP_DIR . "/routes/examples.php");
+    require_once(APP_DIR . "/routes/web.php");
+    require_once(APP_DIR . "/routes/api.php");
 
     /**
      * Dispatch Router
