@@ -19,7 +19,7 @@ use mnaatjes\mvcFramework\MVCCore\BaseModel;
     /**-------------------------------------------------------------------------*/
     class UserService {
 
-        protected UserRepository $reposiory;
+        protected UserRepository $repository;
 
         /**-------------------------------------------------------------------------*/
         /**
@@ -28,7 +28,7 @@ use mnaatjes\mvcFramework\MVCCore\BaseModel;
         /**-------------------------------------------------------------------------*/
         public function __construct(UserRepository $user_repository){
             // Set Repo
-            $this->reposiory = $user_repository;
+            $this->repository = $user_repository;
         }
 
         /**-------------------------------------------------------------------------*/
@@ -38,20 +38,24 @@ use mnaatjes\mvcFramework\MVCCore\BaseModel;
          * @return NULL|UserModel
          */
         /**-------------------------------------------------------------------------*/
-        public function authenticate(?array $data): ?UserModel{
+        public function authenticate(array $params): ?UserModel{
 
-            // Validate
-            if(!is_array($data) || (is_array($data) && count($data) !== 1)){
+            // Validate Params
+            if(!is_array($params) || (!isset($params["username"]) && !isset($params["password"]))){
                 // Dump Error
                 return NULL;
+            }
 
-            } elseif(is_a($data[0], UserModel::class)){
-                // Grab User Model Object
-                // Return User Object
-                return $data[0];
+            // Check Database table
+            $record = $this->repository->findBy(["username" => $params["username"]]);
+
+            // Validate Record
+            if(is_array($record) && is_a($record[0], UserModel::class)){
+                // Return User Model
+                return $record[0];
 
             } else {
-                // Dump Error
+                // Failure to find record
                 return NULL;
             }
         }
@@ -88,17 +92,42 @@ use mnaatjes\mvcFramework\MVCCore\BaseModel;
          * Start User Session
          */
         /**-------------------------------------------------------------------------*/
-        public function startSession(BaseModel $user){
-            
+        public function startSession(BaseModel $user): void{
+            /**
+             * Set Session and store user data
+             */
+            session_start();
+            $_SESSION["user_id"]        = $user->getId();
+            $_SESSION["username"]       = $user->getUsername();
+            $_SESSION["is_logged_in"]   = true;
         }
         
 
         /**-------------------------------------------------------------------------*/
         /**
-         * Check Session
+         * Check User Session is Valid
          */
         /**-------------------------------------------------------------------------*/
-        public function checkSession(){}
+        public function isValidSession(): bool{
+            // Start Session
+            session_start();
+
+            // Validate is_active and get user_id
+            if(!isset($_SESSION['is_logged_in']) || $_SESSION['is_logged_in'] !== true) {
+                return false;
+            }
+
+            // Validate user id against db
+            $result = $this->repository->findById($_SESSION["user_id"]);
+            
+            // Validate result
+            if(is_object($result) && is_a($result, UserModel::class)){
+                return $_SESSION["username"] === $result->getUsername();
+            }
+
+            // Return default
+            return false;
+        }
         
         /**-------------------------------------------------------------------------*/
     }

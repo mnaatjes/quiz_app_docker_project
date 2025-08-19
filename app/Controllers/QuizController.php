@@ -15,15 +15,19 @@
          * @var Object $service
          */
         protected object $service;
+        protected object $userService;
 
         /**-------------------------------------------------------------------------*/
         /**
          * Construct
          */
         /**-------------------------------------------------------------------------*/
-        public function __construct(BaseRepository $repository, $quiz_service){
-            // Assign Service
+        public function __construct(BaseRepository $repository, $user_service, $quiz_service){
+            // Assign Main Service
             $this->service = $quiz_service;
+
+            // Assign User Service
+            $this->userService = $user_service;
 
             // Invoke BaseRepository Construct
             parent::__construct($repository);
@@ -57,6 +61,15 @@
          */
         /**-------------------------------------------------------------------------*/
         public function store(HttpRequest $req, HttpResponse $res, $params): void{
+
+            /**
+             * Check User Service for authentic user
+             */
+            $isValidUser = $this->userService->isValidSession();
+
+            if($isValidUser === false){
+                var_dump("Error: Unable to authenticate user!");
+            }
             
             /**
              * Quiz Store Flow
@@ -119,7 +132,7 @@
             $user_id = 12;
 
             // Create Record in UserQuizzes
-            $userQuiz = $this->service->storeUserQuiz($quiz->getId(), $user_id, $length);
+            $userQuiz = $this->service->storeUserQuiz($quiz->getId(), $_SESSION["user_id"], $length);
             
             // Validate
             if(!is_object($userQuiz)){

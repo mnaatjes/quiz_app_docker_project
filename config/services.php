@@ -39,11 +39,24 @@
     use App\Controllers\UserController;
     use App\Services\UserService;
 
+    // Set User Repository
+    $container->set(UserRepository::class, function($container){
+        return new UserRepository($container->get("orm"));
+    });
+
+    // Set User Service
+    $container->set(UserService::class, function($container){
+        return new UserService($container->get(UserRepository::class));
+    });
+
     // Set Dependencies
     $container->set(UserController::class, function($container){
+        $user_repo = $container->get(UserRepository::class);
+
+        // Assign UserController
         return new UserController(
-            new UserRepository($container->get("orm")),
-            new UserService()
+            $user_repo,
+            new UserService($user_repo)
         );
     });
 
@@ -75,7 +88,7 @@
         // Return Dependency Controller
         return new QuizController(
             $quiz_repo,
-
+            $container->get(UserService::class),
             // Assign Service Dependency
             new QuizService(
                 $quiz_repo,

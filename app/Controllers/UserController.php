@@ -39,21 +39,20 @@ use mnaatjes\mvcFramework\HttpCore\HttpRequest;
         /**-------------------------------------------------------------------------*/
         public function show(HttpRequest $req, HttpResponse $res, array $params): void{
             /**
-             * Collect Parameters:
-             * - Sanitize
+             * Unset Session
              */
-            $username = $req->getPostParam("username");
-            $password = $req->getPostParam("password");
-
+            session_unset();
             /**
-             * Attempt to assign model:
-             * - Grab Record from repository
+             * Authentication:
+             * - Collect parameters
+             * - Sanitize
+             * - Authenticate
+             * - Generate User Model
              */
-            // Search for Username
-            $result = $this->repository->findBy(["username" => $username]);
-
-            // Authenticate
-            $user = $this->service->authenticate($result);
+            $user = $this->service->authenticate([
+                "username" => $req->getPostParam("username"),
+                "password" => $req->getPostParam("password")
+            ]);
 
             // Select Path
             if(is_null($user)){
@@ -61,18 +60,11 @@ use mnaatjes\mvcFramework\HttpCore\HttpRequest;
                 $res->render("/landing", ["title" => "Failure to Authenticate"]);
 
             } else {
-                /**
-                 * Set Session and store user data
-                 */
-                session_start();
-                $_SESSION["user_id"]        = $user->getId();
-                $_SESSION["username"]       = $user->getUsername();
-                $_SESSION["is_logged_in"]   = true;
-
-                var_dump($_SESSION);
-
+                // Start Session
+                $this->service->startSession($user);
+                
                 // Redirect to Dashboard
-                //$res->redirect("/index.php/dashboard");
+                $res->redirect("/index.php/dashboard");
             }
         }
     }
