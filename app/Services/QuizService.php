@@ -40,13 +40,6 @@ use mnaatjes\mvcFramework\MVCCore\BaseModel;
             $this->userQuizzesRepo  = $user_quiz_repo;
             $this->questionRepo     = $question_repo;
             $this->answerRepo       = $answers_repo;
-
-            // Declare and define Data Object
-            $dataObj = [
-                "questions"     => [],
-                "category_id"   => NULL,
-                "difficulty_id" => NULL
-            ];
         }
 
         /**-------------------------------------------------------------------------*/
@@ -89,6 +82,20 @@ use mnaatjes\mvcFramework\MVCCore\BaseModel;
         /**-------------------------------------------------------------------------*/
         /**
          * 
+         */
+        /**-------------------------------------------------------------------------*/
+        private function getQuestionIds(array $questions){
+            return array_reduce($questions, function($acc, $obj){
+                if(is_a($obj, BaseModel::class)){
+                    $acc[] = $obj->getId();
+                }
+                return $acc;
+            }, []);
+        }
+
+        /**-------------------------------------------------------------------------*/
+        /**
+         * 
          * @param array $questions
          * @param string $title
          * @param int $category_id
@@ -98,12 +105,7 @@ use mnaatjes\mvcFramework\MVCCore\BaseModel;
         /**-------------------------------------------------------------------------*/
         public function storeQuiz(array $questions, string $title, int $category_id, int $difficulty_id){
             // Parse Question Ids
-            $questionIds = array_reduce($questions, function($acc, $obj){
-                if(is_a($obj, BaseModel::class)){
-                    $acc[] = $obj->getId();
-                }
-                return $acc;
-            }, []);
+            $questionIds = $this->getQuestionIds($questions);
 
             // Validate
             if(empty($questionIds)){
@@ -165,6 +167,42 @@ use mnaatjes\mvcFramework\MVCCore\BaseModel;
             // TODO: Validate
             // Return model
             return $userQuiz;
+        }
+
+        /**-------------------------------------------------------------------------*/
+        /**
+         * 
+         */
+        /**-------------------------------------------------------------------------*/
+        public function getDataObject(array $questions, string $title, int $category_id, int $difficulty_id, int $length){
+
+            // Form Question Object
+            $data_object["quiz"] = array_reduce($questions, function($acc, $question){
+                //Get id
+                $q_id = $question->getId();
+
+                // Query Answers Table
+                $answers = array_map(function($obj){
+                    return $obj->toArray();
+                }, $this->answerRepo->findBy(["question_id" => $q_id]));
+
+                $acc[] = [
+                    "question"  => $question->toArray(),
+                    "answers"   => $answers
+                ];
+
+                return $acc;
+            }, []);
+
+            // Append other data
+            $data_object["title"]       = $title;
+            $data_object["category"]    = $category_id;
+            $data_object["difficulty"]  = $difficulty_id;
+            $data_object["length"]      = $length;
+
+            // TODO: Validation and shorted reponse body
+            // Return data object
+            return $data_object;
         }
     }
 

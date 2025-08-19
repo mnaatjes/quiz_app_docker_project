@@ -115,11 +115,27 @@
                 var_dump("Error: Unable to save quiz!");
             }
 
-            // DEBUGGING TODO: Change
+            // DEBUGGING TODO: Change to session variable
             $user_id = 12;
+
             // Create Record in UserQuizzes
             $userQuiz = $this->service->storeUserQuiz($quiz->getId(), $user_id, $length);
-            var_dump($userQuiz);
+            
+            // Validate
+            if(!is_object($userQuiz)){
+                var_dump("Error: Unable to store UserQuiz!");
+            }
+
+            // Form Data Response Object
+            $dataObject = $this->service->getDataObject(
+                $questions,
+                $title,
+                $category_id,
+                $difficulty_id,
+                $length
+            );
+
+            var_dump($dataObject);
         }
     }
 

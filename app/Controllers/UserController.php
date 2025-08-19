@@ -61,8 +61,18 @@ use mnaatjes\mvcFramework\HttpCore\HttpRequest;
                 $res->render("/landing", ["title" => "Failure to Authenticate"]);
 
             } else {
+                /**
+                 * Set Session and store user data
+                 */
+                session_start();
+                $_SESSION["user_id"]        = $user->getId();
+                $_SESSION["username"]       = $user->getUsername();
+                $_SESSION["is_logged_in"]   = true;
+
+                var_dump($_SESSION);
+
                 // Redirect to Dashboard
-                $res->redirect("/index.php/dashboard");
+                //$res->redirect("/index.php/dashboard");
             }
         }
     }
