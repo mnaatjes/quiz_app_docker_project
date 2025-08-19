@@ -12,4 +12,20 @@
         $res->render("register", []);
     });
 
+    /**
+     * Dashboard
+     */
+    $router->get("/dashboard", function($req, $res){
+        // Render Registraton Page
+        $res->render("dashboard");
+    });
+
+    /**
+     * Dashboard
+     */
+    $router->get("/quiz/create", function($req, $res){
+        // Render Registraton Page
+        $res->render("create_quiz");
+    });
+
 ?>

@@ -47,10 +47,6 @@ use mnaatjes\mvcFramework\MVCCore\BaseModel;
             } else {
                 $res->setBody("Error!");
             }
-
-            // Send
-            $res->addHeader("Content-Type", "application/json");
-            $res->send();
         }
 
         /**-------------------------------------------------------------------------*/

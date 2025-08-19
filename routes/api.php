@@ -3,11 +3,17 @@
     /**
      * Includes
      */
-    use App\Controllers\UserController;
+
+use App\Controllers\QuizController;
+use App\Controllers\UserController;
     
     /**
-     * API Routes
+     * User Login
      */
-    $router->get("/users/", [UserController::class, "index"]);
-    $router->get("/users/{id}/", [UserController::class, "show"]);
+    $router->post("/login", [UserController::class, "show"]);
+
+    /**
+     * Store Quiz API
+     */
+    $router->post("/quiz/store", [QuizController::class, "store"]);
 ?>

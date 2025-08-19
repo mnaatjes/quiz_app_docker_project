@@ -11,7 +11,7 @@
         <?php echo htmlspecialchars($message ?? 'Please enter your credentials to continue.'); ?>
     </p>
 
-    <form action="/login" method="post" class="space-y-4">
+    <form action="/index.php/login" method="POST" class="space-y-4">
         <!-- Username/Email Input Field -->
         <div>
             <label for="username" class="block text-gray-700 text-sm font-semibold mb-2">Username or Email</label>
@@ -19,6 +19,7 @@
                 type="text" 
                 id="username" 
                 name="username" 
+                value="test_username"
                 placeholder="Enter your username or email"
                 class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 required
@@ -33,6 +34,7 @@
                 id="password" 
                 name="password" 
                 placeholder="Enter your password"
+                value="my_secret_password"
                 class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 required
             >
