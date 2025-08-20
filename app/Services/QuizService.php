@@ -2,6 +2,7 @@
 
     namespace App\Services;
     use App\Models\QuizModel;
+use App\Models\UserModel;
 use App\Models\UserQuizModel;
 use mnaatjes\mvcFramework\DataAccess\BaseRepository;
 use mnaatjes\mvcFramework\MVCCore\BaseModel;
@@ -174,36 +175,71 @@ use mnaatjes\mvcFramework\MVCCore\BaseModel;
          * 
          */
         /**-------------------------------------------------------------------------*/
-        public function getDataObject(array $questions, string $title, int $category_id, int $difficulty_id, int $length){
+        public function createDataObject(array $questions, QuizModel $quiz, int $length){
 
             // Form Question Object
-            $data_object["quiz"] = array_reduce($questions, function($acc, $question){
+            $data_object["questions"] = array_reduce($questions, function($acc, $question){
                 //Get id
-                $q_id = $question->getId();
+                $question_id = $question->getId();
 
                 // Query Answers Table
-                $answers = array_map(function($obj){
-                    return $obj->toArray();
-                }, $this->answerRepo->findBy(["question_id" => $q_id]));
+                $answers = array_reduce($this->answerRepo->findBy(["question_id" => $question_id]), function($carry, $answer){
+                    $carry[] = $answer->toArray();
+                    // Push
+                    return $carry;
 
-                $acc[] = [
-                    "question"  => $question->toArray(),
-                    "answers"   => $answers
+                }, []);
+
+                $question_arr = [
+                    "id"    => $question->getId(),
+                    "text"  => $question->getQuestionText(),
+                    "category"      => $question->getCategoryId(),
+                    "times_asked"   => $question->getTimesAsked(),
+                    "correct_attempts_count"    => $question->getCorrectAttemptsCount(),
+                    "incorrect_attempts_count"  => $question->getIncorrectAttemptsCount(),
+                    "difficulty" => $question->getDifficultyId(),
+                    "skip_count" => $question->getSkipCount(),
+                    "total_time_spent_seconds" => $question->getTotalTimeSpentSeconds(),
+                    "last_played_at" => $question->getLastPlayedAt()
                 ];
+                $question_arr["answers"] = $answers;
 
+                $acc[] = $question_arr;
+
+                // Return acc
                 return $acc;
             }, []);
 
             // Append other data
-            $data_object["title"]       = $title;
-            $data_object["category"]    = $category_id;
-            $data_object["difficulty"]  = $difficulty_id;
-            $data_object["length"]      = $length;
+            $data_object["quiz"] = $quiz->toArray();
+            $data_object["quiz"]["length"] = $length;
 
             // TODO: Validation and shorted reponse body
             // Return data object
             return $data_object;
         }
+
+        /**-------------------------------------------------------------------------*/
+        /**
+         * Store quiz data in session
+         */
+        /**-------------------------------------------------------------------------*/
+        public function storeQuizSession(array $quiz_data){
+            
+            // TODO: Check if session with user exists
+
+            // Assign to SESSION
+            $_SESSION["quiz_data"] = $quiz_data;
+
+            // Return boolean
+            return true;
+        }
+
+        /**-------------------------------------------------------------------------*/
+        /**
+         * Render Quiz
+         */
+        /**-------------------------------------------------------------------------*/
     }
 
 ?>

@@ -131,7 +131,7 @@
             // DEBUGGING TODO: Change to session variable
             $user_id = 12;
 
-            // Create Record in UserQuizzes
+            // Create Record in UserQuizzes to DB Table 
             $userQuiz = $this->service->storeUserQuiz($quiz->getId(), $_SESSION["user_id"], $length);
             
             // Validate
@@ -140,15 +140,24 @@
             }
 
             // Form Data Response Object
-            $dataObject = $this->service->getDataObject(
+            $dataObject = $this->service->createDataObject(
                 $questions,
-                $title,
-                $category_id,
-                $difficulty_id,
+                $quiz,
                 $length
             );
+            
+            // Store Quiz to Session
+            $stored = $this->service->storeQuizSession($dataObject);
 
-            var_dump($dataObject);
+            if($stored === true){
+                // Redirect
+                //$res->redirect("/index.php/quiz/play");
+                $res->redirect("/index.php/quiz/test");
+
+            } else {
+                // Error
+                var_dump("Error: Unable to store quiz!");
+            }
         }
     }
 

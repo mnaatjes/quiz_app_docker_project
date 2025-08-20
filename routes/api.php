@@ -16,4 +16,17 @@ use App\Controllers\UserController;
      * Store Quiz API
      */
     $router->post("/quiz/store", [QuizController::class, "store"]);
+
+    /**
+     * Test Quiz
+     */
+    $router->get("/quiz/test", function($req, $res){
+        // Grab Session
+        session_start();
+        
+        // Render
+        $json = json_encode($_SESSION["quiz_data"], JSON_PRETTY_PRINT);
+
+        echo "<pre>" . htmlspecialchars($json) . "</pre>";
+    });
 ?>

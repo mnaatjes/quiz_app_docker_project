@@ -28,4 +28,15 @@
         $res->render("create_quiz");
     });
 
+    /**
+     * Play Quiz
+     */
+    $router->get("/quiz/play", function($req, $res){
+        // Grab Session
+        session_start();
+        
+        // Render
+        $res->render("play_quiz", $_SESSION["quiz_data"]);
+    });
+
 ?>
