@@ -34,10 +34,14 @@ use mnaatjes\mvcFramework\SessionsCore\SessionManager;
     /**
      * Debugging
      */
-    $router->get("/debug", function() use($container){
+    $router->get("/debug", function($req, $res) use($container){
         $session = $container->get(SessionManager::class);
-        $session->set("puppy_id", "Gemini");
-
-        var_dump($session->getAll());
-    });
+        var_dump("Handler");
+        var_dump($session->get("pet"));
+    }, [function($req, $res, $next) use($container){
+        $session = $container->get(SessionManager::class);
+        $session->set("pet", "gemini");
+        var_dump("Middleware");
+        $next();
+    }]);
 ?>
