@@ -2,6 +2,8 @@
 
     use mnaatjes\mvcFramework\DataAccess\Database;
     use mnaatjes\mvcFramework\DataAccess\ORM;
+use mnaatjes\mvcFramework\SessionsCore\SessionManager;
+
     /**
      * Declare DB Instance
      * @var Database $db_instance
@@ -17,6 +19,7 @@
     $container->setShared("orm", function($container){
         return new ORM($container->get("db"));
     });
+    $container->setShared(SessionManager::class, new SessionManager());
 
     /**-------------------------------------------------------------------------*/
     /**
