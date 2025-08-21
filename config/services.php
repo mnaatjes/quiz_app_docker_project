@@ -24,6 +24,7 @@
      * 
      * @version 1.1.0
      */
+
     use mnaatjes\mvcFramework\DataAccess\Database;
     use mnaatjes\mvcFramework\DataAccess\ORM;
     use mnaatjes\mvcFramework\SessionsCore\SessionManager;
@@ -56,7 +57,7 @@
     });
 
     /**
-     * Bind the Session Manager to DI Container
+     * Bind the Session Manager singleton to DI Container
      *
      * This service provides an instance of the SessionManager
      *
@@ -64,6 +65,15 @@
      * @return \mnaatjes\mvcFramework\SessionsCore\SessionManager
      */
     $container->setShared(SessionManager::class, new SessionManager());
-    
-    
+
+    /**
+     * Required Service Definitions:
+     * - Middleware
+     * - UserServices
+     */
+    require_once("Services/Middleware.php");
+    require_once("Services/UserServices.php");
+    require_once("Services/QuizServices.php");
+
+
 ?>

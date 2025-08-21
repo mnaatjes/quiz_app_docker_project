@@ -1,15 +1,23 @@
 <?php
 // quiz_app/app/Views/home.php
 // This view displays a login form to the user.
+    $error = $data["error"] ?? NULL;
+    $title = $data["title"] ?? "Log In";
+    $message = $data["message"] ?? "";
 ?>
 <main class="container mx-auto mt-8 p-6 bg-white rounded-lg shadow-md max-w-md">
     <!-- The title and message are passed from the controller -->
     <h1 class="text-4xl font-bold text-gray-800 mb-2 text-center">
-        <?php echo htmlspecialchars($title ?? 'Log In'); ?>
+        <?php echo htmlspecialchars($title); ?>
     </h1>
     <p class="text-lg text-gray-600 mb-6 text-center">
-        <?php echo htmlspecialchars($message ?? 'Please enter your credentials to continue.'); ?>
+        <?php echo htmlspecialchars($message); ?>
     </p>
+    <?php if (!is_null($error)): ?>
+    <p class="text-md text-red-600 mb-6 text-center">
+        <?php echo htmlspecialchars($error); ?>
+    </p>
+    <?php endif; ?>
 
     <form action="/index.php/login" method="POST" class="space-y-4">
         <!-- Username/Email Input Field -->

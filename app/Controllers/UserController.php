@@ -24,25 +24,41 @@ use mnaatjes\mvcFramework\HttpCore\HttpRequest;
         /**-------------------------------------------------------------------------*/
         /**
          * Returns one instance
+         * Called by router->post(/login)
          */
         /**-------------------------------------------------------------------------*/
         public function show(HttpRequest $req, HttpResponse $res, array $params): void{
             /**
-             * Unset Session
-             */
-            /**
-             * Authentication:
+             * UserService:
              * - Collect parameters
              * - Sanitize
-             * - Authenticate
-             * - Generate User Model
+             * - Repository:
+             *      -> Generate User Model
+             * - Set Session
              */
+            $postParams = $req->getPostParams();
+            if(empty($postParams)){
+                // TODO: 
+                // Redirect
+            }
 
-            /**
-             * Select Path:
-             * - Login
-             * - Re-register
-             */
+            // Check
+            if(isset($postParams["username"]) && isset($postParams["password"])){
+                // Call UserService Login() method
+                $logged_in = $this->UserService->login(
+                    $postParams["username"],
+                    $postParams["password"]
+                ); 
+
+                // Path Fail / Success
+                if($logged_in === true){
+                    // To Dashboard
+                    $res->redirect("/index.php/dashboard");
+                } else {
+                    // To Fail-Login
+                    $res->redirect("/index.php/login-fail");
+                }
+            }
         }
     }
 ?>

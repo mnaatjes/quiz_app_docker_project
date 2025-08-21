@@ -21,6 +21,9 @@
      * @version 1.1.0
      */
 
+use App\Controllers\UserController;
+use App\Middleware\UserAuth;
+use App\Services\UserService;
 
     /**
      * Routes:
@@ -39,11 +42,35 @@
      * @return void
      */
     /**-------------------------------------------------------------------------*/
-    $router->post("/login", function($req, $res, $params) use($container){
-        var_dump("/login test");
-        var_dump("params", $params);
-        var_dump("container", $container);
-    });
+    $router->post("/login", [UserController::class, "show"]);
+
+    /**-------------------------------------------------------------------------*/
+    /**
+     * GET /
+     *
+     * Executes Middleware for User Auth Failure
+     *
+     * @return void
+     */
+    /**-------------------------------------------------------------------------*/
+    $router->get("/auth-failure", [], [function($req, $res, $next) use($container){
+        // Render Registraton Page
+        $container->get(UserAuth::class)->onFailure($req, $res, $next);
+    }]);
+
+    /**-------------------------------------------------------------------------*/
+    /**
+     * GET /
+     * 
+     * Login Failure
+     *
+     * @return void
+     */
+    /**-------------------------------------------------------------------------*/
+    $router->get("/login-fail", [], [function($req, $res, $next){
+        // Render Registraton Page
+        $res->render("landing", ["error" => "Login not found. Please Try Again"]);
+    }]);
 
     /**-------------------------------------------------------------------------*/
     /**

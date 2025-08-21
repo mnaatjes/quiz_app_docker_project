@@ -18,6 +18,11 @@
      * 
      * @version 1.1.0
      */
+
+use App\Controllers\QuizController;
+use App\Middleware\UserAuth;
+use mnaatjes\mvcFramework\SessionsCore\SessionManager;
+
     /**
      * Web Routes:
      * - /
@@ -39,7 +44,9 @@
      * @return void
      */
     /**-------------------------------------------------------------------------*/
-    $router->get("/", function($req, $res){
+    $router->get("/", function($req, $res) use($container){
+        // clear existing sessions
+        $container->get(SessionManager::class)->clear();
         // Render Landing Page
         $res->render("landing");
     });
@@ -67,9 +74,8 @@
      * @return void
      */
     /**-------------------------------------------------------------------------*/
-    $router->get("/dashboard", function($req, $res){
-        // Render Registraton Page
-        $res->render("dashboard");
-    });
+    $router->get("/dashboard", [QuizController::class, "index"], [function($req, $res, $next) use($container){
+        $container->get(UserAuth::class)->handler($req, $res, $next);
+    }]);
 
 ?>

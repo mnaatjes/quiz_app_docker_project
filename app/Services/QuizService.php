@@ -2,10 +2,11 @@
 
     namespace App\Services;
     use App\Models\QuizModel;
-use App\Models\UserModel;
-use App\Models\UserQuizModel;
-use mnaatjes\mvcFramework\DataAccess\BaseRepository;
-use mnaatjes\mvcFramework\MVCCore\BaseModel;
+    use App\Models\UserModel;
+    use App\Models\UserQuizModel;
+    use mnaatjes\mvcFramework\DataAccess\BaseRepository;
+    use mnaatjes\mvcFramework\MVCCore\BaseModel;
+use mnaatjes\mvcFramework\SessionsCore\SessionManager;
 
     /**-------------------------------------------------------------------------*/
     /**
@@ -25,6 +26,7 @@ use mnaatjes\mvcFramework\MVCCore\BaseModel;
         private BaseRepository $userQuizzesRepo;
         private BaseRepository $questionRepo;
         private BaseRepository $answerRepo;
+        private SessionManager $session;
 
         /**-------------------------------------------------------------------------*/
         /**
@@ -36,11 +38,13 @@ use mnaatjes\mvcFramework\MVCCore\BaseModel;
             BaseRepository $user_quiz_repo,
             BaseRepository $question_repo,
             BaseRepository $answers_repo,
+            SessionManager $session_manager,
         ){
             $this->quizRepo         = $quiz_repository;
             $this->userQuizzesRepo  = $user_quiz_repo;
             $this->questionRepo     = $question_repo;
             $this->answerRepo       = $answers_repo;
+            $this->session          = $session_manager;
         }
 
         /**-------------------------------------------------------------------------*/
@@ -237,9 +241,53 @@ use mnaatjes\mvcFramework\MVCCore\BaseModel;
 
         /**-------------------------------------------------------------------------*/
         /**
-         * Render Quiz
+         * Load User Quiz Data
          */
         /**-------------------------------------------------------------------------*/
+        public function loadUserQuizzes(int $user_id){
+            /**
+             * Load User Quizzes
+             * - Find records by user_id
+             * - Pull records by user_id from quizzes
+             * - Render Data Object
+             */
+            // Query UserQuizzes
+            $userQuizzes = $this->userQuizzesRepo->findByForeignId("user_id", $user_id);
+
+            // Return if empty
+            if(empty($userQuizzes)){
+                return [];
+            }
+
+            // Find by quiz_id
+            $records = [];
+            foreach($userQuizzes as $userQuiz){
+
+                // Query Quiz Table
+                $quiz = $this->quizRepo->findById($userQuiz->getQuizId());
+
+                // Query Difficulty Table
+                
+
+                // Query Category Table
+
+
+                // Assemble Data Object
+                $records[] = [
+                    "id"            => $quiz->getId(),
+                    "title"         => $quiz->getTitle(),
+                    "is_completed"  => $userQuiz->getIsCompleted() === 1 ? "Yes" : "No",
+                    "completed_at"  => $userQuiz->getCompletedAt(),
+                    "length"        => $userQuiz->getTotalQuestions(),
+                    "score"         => $userQuiz->getScore(),
+                    "last_played"   => $userQuiz->getLastActivityAt(),
+                    "difficulty"    => $quiz->getDifficultyId(),
+                    "category"      => $quiz->getCategoryId()
+                ];
+            }
+            return $records;
+
+        }
     }
 
 ?>

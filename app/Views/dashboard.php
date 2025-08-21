@@ -3,6 +3,14 @@
 // This view displays the user's dashboard with a list of quizzes.
 ?>
 <main class="container mx-auto mt-8 p-6 bg-white rounded-lg shadow-md">
+    <div>
+        <small>
+            <?php
+            $user    = $data["user"];
+            $quizzes = $data["user_quizzes"];
+            ?>
+        </small>
+    </div>
     <div class="flex justify-between items-center mb-6">
         <h1 class="text-3xl font-bold text-gray-800">
             <?php echo htmlspecialchars($title ?? 'Dashboard'); ?>
@@ -10,6 +18,9 @@
         <a href="/index.php/quiz/create" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg shadow-lg transform transition-transform duration-200 hover:scale-105">
             New Quiz
         </a>
+    </div>
+    <div>
+        <b><?php echo($user["username"]);?></b>
     </div>
 
     <!-- Check if the quizzes data exists and is not empty -->
@@ -27,6 +38,9 @@
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             Last Played
                         </th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Title
+                        </th>
                         <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                             Actions
                         </th>
@@ -40,15 +54,16 @@
                                 <?php echo htmlspecialchars($quiz['category']); ?>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                <?php echo htmlspecialchars($quiz['completed']); ?>
+                                <?php echo htmlspecialchars($quiz['is_completed']); ?>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                 <?php echo htmlspecialchars($quiz['last_played']); ?>
                             </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                <?php echo htmlspecialchars($quiz['title']); ?>
+                            </td>
                             <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                <a href="/quiz/play/<?php echo htmlspecialchars($quiz['id']); ?>" class="text-blue-600 hover:text-blue-900">
-                                    Play Again
-                                </a>
+                                <a href="/index.php/quiz/<?php echo $quiz["id"];?>" class="text-blue-600 hover:text-blue-900">Play Again</a>
                             </td>
                         </tr>
                     <?php endforeach; ?>
