@@ -1,106 +1,69 @@
 <?php
-
+    /**
+     * services.php
+     *
+     * This file is responsible for defining and configuring application services
+     * and dependencies within the Dependency Injection (DI) container.
+     *
+     * It binds key services such as the database connection, Object-Relational Mapper (ORM),
+     * and session manager to the application container, making them accessible
+     * throughout the application.
+     *
+     * This configuration file is a central part of the application's service
+     * architecture, ensuring that dependencies are managed in a consistent
+     * and organized manner.
+     *
+     * @package mnaatjes\mvcFramework\Config
+     * @author Michael Naatjes michael.naatjes87@gmail.com
+     * @link https://mnaatjes.github.io/docs/mvc-framework 
+     * 
+     * @since 1.0.0
+     * - Created
+     * - Added comments
+     * - Refactored Dependencies
+     * 
+     * @version 1.1.0
+     */
     use mnaatjes\mvcFramework\DataAccess\Database;
     use mnaatjes\mvcFramework\DataAccess\ORM;
-use mnaatjes\mvcFramework\SessionsCore\SessionManager;
+    use mnaatjes\mvcFramework\SessionsCore\SessionManager;
 
     /**
      * Declare DB Instance
-     * @var Database $db_instance
+     * @var mnaatjes\mvc-framework\DataAccess\Database The singleton instance of the database connection.
      */
     $db_instance = Database::getInstance();
 
     /**
-     * On $container instance
-     * - Bind DB Instance
-     * - Bind ORM Instance
+     * Bind the Database service to the container.
+     *
+     * @param \mnaatjes\mvcFramework\Container $container The dependency injection container.
+     * @return \mnaatjes\mvcFramework\DataAccess\Database
      */
     $container->setShared("db", $db_instance);
+
+    /**
+     * Bind the ORM service to the container.
+     *
+     * This service provides an instance of the ORM class,
+     * with the database connection as a dependency.
+     *
+     * @param \mnaatjes\mvcFramework\Container $container The dependency injection container.
+     * @return \mnaatjes\mvcFramework\DataAccess\ORM
+     */
     $container->setShared("orm", function($container){
         return new ORM($container->get("db"));
     });
+
+    /**
+     * Bind the Session Manager to DI Container
+     *
+     * This service provides an instance of the SessionManager
+     *
+     * @param \mnaatjes\mvcFramework\Container $container The dependency injection container.
+     * @return \mnaatjes\mvcFramework\SessionsCore\SessionManager
+     */
     $container->setShared(SessionManager::class, new SessionManager());
-
-    /**-------------------------------------------------------------------------*/
-    /**
-     * Example set Test Controller
-     */
-    /**-------------------------------------------------------------------------*/
-    use App\Controllers\TestController;
-    use App\Repositories\TestRepository;
-
-    $container->set(TestController::class, function($container){
-        return new TestController(new TestRepository($container->get("orm")));
-    });
-
-    /**-------------------------------------------------------------------------*/
-    /**
-     * User Dependencies
-     */
-    /**-------------------------------------------------------------------------*/
-    use App\Repositories\UserRepository;
-    use App\Controllers\UserController;
-    use App\Services\UserService;
-
-    // Set User Repository
-    $container->set(UserRepository::class, function($container){
-        return new UserRepository($container->get("orm"));
-    });
-
-    // Set User Service
-    $container->set(UserService::class, function($container){
-        return new UserService($container->get(UserRepository::class));
-    });
-
-    // Set Dependencies
-    $container->set(UserController::class, function($container){
-        $user_repo = $container->get(UserRepository::class);
-
-        // Assign UserController
-        return new UserController(
-            $user_repo,
-            new UserService($user_repo)
-        );
-    });
-
-    /**-------------------------------------------------------------------------*/
-    /**
-     * Quiz Dependencies
-     */
-    /**-------------------------------------------------------------------------*/
-    // Controller
-    use App\Controllers\QuizController;
-
-    // Service
-    use App\Services\QuizService;
-    
-    // Repositories
-    use App\Repositories\QuizRepository;
-    use App\Repositories\AnswerRepository;
-    use App\Repositories\QuestionRepository;
-    use App\Repositories\UserQuizRepository;
-
-    // Set Dependencies
-    $container->set(QuizController::class, function($container){
-        // Get ORM instance
-        $orm = $container->get("orm");
-
-        // Declare QuizRepo
-        $quiz_repo = new QuizRepository($orm);
-
-        // Return Dependency Controller
-        return new QuizController(
-            $quiz_repo,
-            $container->get(UserService::class),
-            // Assign Service Dependency
-            new QuizService(
-                $quiz_repo,
-                new UserQuizRepository($orm),
-                new QuestionRepository($orm),
-                new AnswerRepository($orm)
-            )
-        );
-    });
     
     
 ?>

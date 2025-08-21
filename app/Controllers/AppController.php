@@ -1,15 +1,23 @@
 <?php
     namespace App\Controllers;
-
-use App\Models\UserModel;
-use mnaatjes\mvcFramework\MVCCore\BaseController;
+    use mnaatjes\mvcFramework\MVCCore\BaseController;
     use mnaatjes\mvcFramework\HttpCore\HttpRequest;
     use mnaatjes\mvcFramework\HttpCore\HttpResponse;
-use mnaatjes\mvcFramework\MVCCore\BaseModel;
+    use mnaatjes\mvcFramework\MVCCore\BaseModel;
 
     /**-------------------------------------------------------------------------*/
     /**
-     * Test Controller inhereting BaseController
+     * Application Controller for Quiz App
+     * 
+     * @since 1.0.0: 
+     * - Decoupled from BaseRepository
+     * - Added method for attaching services; default empty
+     * 
+     * @since 1.1.0:
+     * - Cleared show() method
+     * - Cleared index() method
+     * 
+     * @version 1.2.0
      */
     /**-------------------------------------------------------------------------*/
     class AppController extends BaseController {
@@ -19,35 +27,14 @@ use mnaatjes\mvcFramework\MVCCore\BaseModel;
          * 
          */
         /**-------------------------------------------------------------------------*/
-        public function index(HttpRequest $req, HttpResponse $res): void{
-
-            /**
-             * TODO: Change
-             * Debugging
-             */
-            $data = $this->repository->all();
-            $res->addHeader("Content-Type", "application/json");
-            $res->setBody(json_encode(array_map(function($obj){return $obj->toArray();}, $data), JSON_PRETTY_PRINT));
-            $res->send();
-
-        }
+        public function index(HttpRequest $req, HttpResponse $res): void{}
 
         /**-------------------------------------------------------------------------*/
         /**
          * Returns one instance
          */
         /**-------------------------------------------------------------------------*/
-        public function show(HttpRequest $req, HttpResponse $res, array $params): void{
-            // Pull data
-            $model = $this->repository->findById($params["id"]);
-            
-            // Validate
-            if(is_a($model, BaseModel::class)){
-                $res->setBody($model->toJSON());
-            } else {
-                $res->setBody("Error!");
-            }
-        }
+        public function show(HttpRequest $req, HttpResponse $res, array $params): void{}
 
         /**-------------------------------------------------------------------------*/
         /**

@@ -1,42 +1,69 @@
 <?php
+    /**
+     * routes/web.php
+     *
+     * This file is where you can register web routes for your application. These
+     * routes are loaded by the RouteServiceProvider and all of them will be
+     * assigned to the "web" middleware group.
+     *
+     * This file defines the public-facing pages of the application, such as
+     * the home page, authentication routes, and other user-facing interfaces.
+     *
+     * @package App\Http\Routes
+     * 
+     * @since 1.0.0
+     * - Created
+     * - Refactored
+     * - Added docbloc comments
+     * 
+     * @version 1.1.0
+     */
+    /**
+     * Web Routes:
+     * - /
+     * - /register
+     * - /dashboard
+     * - /quiz/create
+     * - /quiz/play
+     */
 
     /**
-     * Web Routes
+     * GET /
+     *
+     * Renders the home page of the application.
+     *
+     * This route is the main entry point for the website and serves the
+     * primary landing page.
+     *
+     * @return void
      */
     $router->get("/", function($req, $res){
         // Render Landing Page
-        $res->render("landing", []);
-    });
-    $router->get("/register", function($req, $res){
-        // Render Registraton Page
-        $res->render("register", []);
+        $res->render("landing");
     });
 
     /**
-     * Dashboard
+     * GET /
+     *
+     * Renders the registration page of the application.
+     *
+     * @return void
+     */
+    $router->get("/register", function($req, $res){
+        // Render Registraton Page
+        $res->render("register");
+    });
+
+    /**
+     * GET /
+     *
+     * Renders the dashboard page of the application.
+     *
+     * @return void
      */
     $router->get("/dashboard", function($req, $res){
         // Render Registraton Page
         $res->render("dashboard");
-    });
-
-    /**
-     * Dashboard
-     */
-    $router->get("/quiz/create", function($req, $res){
-        // Render Registraton Page
-        $res->render("create_quiz");
-    });
-
-    /**
-     * Play Quiz
-     */
-    $router->get("/quiz/play", function($req, $res){
-        // Grab Session
-        session_start();
-        
-        // Render
-        $res->render("play_quiz", $_SESSION["quiz_data"]);
     });
 
 ?>

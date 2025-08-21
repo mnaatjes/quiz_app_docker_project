@@ -7,65 +7,42 @@
     /**-------------------------------------------------------------------------*/
     /**
      * Quiz Controller inhereting AppController
+     * 
+     * @since 1.0.0:
+     * - Removed constructor
+     * - Reset index(), store(), show()
+     * 
+     * @version 1.1.0
      */
     /**-------------------------------------------------------------------------*/
     class QuizController extends AppController {
 
-        /**
-         * @var Object $service
-         */
-        protected object $service;
-        protected object $userService;
-
         /**-------------------------------------------------------------------------*/
         /**
-         * Construct
+         * 
          */
         /**-------------------------------------------------------------------------*/
-        public function __construct(BaseRepository $repository, $user_service, $quiz_service){
-            // Assign Main Service
-            $this->service = $quiz_service;
-
-            // Assign User Service
-            $this->userService = $user_service;
-
-            // Invoke BaseRepository Construct
-            parent::__construct($repository);
-        }
+        public function index(HttpRequest $req, HttpResponse $res): void{}
 
         /**-------------------------------------------------------------------------*/
         /**
          * 
          */
         /**-------------------------------------------------------------------------*/
-        public function index(HttpRequest $req, HttpResponse $res): void{
-            $data = $this->repository->all();
-            
-            $res->sendJson(array_map(function($obj){return $obj->toJSON();}, $data));
-
-        }
+        public function show(HttpRequest $req, HttpResponse $res, $params): void{}
 
         /**-------------------------------------------------------------------------*/
         /**
          * 
          */
         /**-------------------------------------------------------------------------*/
-        public function show(HttpRequest $req, HttpResponse $res, $params): void{
-            
-            
-        }
-
-        /**-------------------------------------------------------------------------*/
-        /**
-         * 
-         */
-        /**-------------------------------------------------------------------------*/
-        public function store(HttpRequest $req, HttpResponse $res, $params): void{
+        public function store(HttpRequest $req, HttpResponse $res, $params): void{}
+        public function _store(HttpRequest $req, HttpResponse $res, $params): void{
 
             /**
              * Check User Service for authentic user
              */
-            $isValidUser = $this->userService->isValidSession();
+            $isValidUser = $this->UserService->isValidSession();
 
             if($isValidUser === false){
                 var_dump("Error: Unable to authenticate user!");
@@ -103,7 +80,7 @@
             $length         = 10;
 
             // Pull Questions
-            $questions = $this->service->pullQuestions(
+            $questions = $this->UserService->pullQuestions(
                 $category_id,
                 $difficulty_id,
                 $length
@@ -116,7 +93,7 @@
             }
 
             // Store Quiz
-            $quiz = $this->service->storeQuiz(
+            $quiz = $this->UserService->storeQuiz(
                 $questions,
                 $title,
                 $category_id,
@@ -132,7 +109,7 @@
             $user_id = 12;
 
             // Create Record in UserQuizzes to DB Table 
-            $userQuiz = $this->service->storeUserQuiz($quiz->getId(), $_SESSION["user_id"], $length);
+            $userQuiz = $this->UserService->storeUserQuiz($quiz->getId(), $_SESSION["user_id"], $length);
             
             // Validate
             if(!is_object($userQuiz)){
@@ -140,14 +117,14 @@
             }
 
             // Form Data Response Object
-            $dataObject = $this->service->createDataObject(
+            $dataObject = $this->UserService->createDataObject(
                 $questions,
                 $quiz,
                 $length
             );
             
             // Store Quiz to Session
-            $stored = $this->service->storeQuizSession($dataObject);
+            $stored = $this->UserService->storeQuizSession($dataObject);
 
             if($stored === true){
                 // Redirect
