@@ -5,8 +5,11 @@
      */
 
 use App\Controllers\QuizController;
+use App\Models\DifficultyModel;
 use App\Models\QuestionModel;
 use App\Repositories\AnswerRepository;
+use App\Repositories\CategoryRepository;
+use App\Repositories\DifficultyRepository;
 use App\Repositories\QuestionRepository;
 use App\Repositories\QuizRepository;
 use App\Repositories\UserQuizRepository;
@@ -27,6 +30,8 @@ use mnaatjes\mvcFramework\SessionsCore\SessionManager;
         new UserQuizRepository($container->get("orm")),
         new QuestionRepository($container->get("orm")),
         new AnswerRepository($container->get("orm")),
+        new CategoryRepository($container->get("orm")),
+        new DifficultyRepository($container->get("orm")),
         $container->get(SessionManager::class)
     ));
 

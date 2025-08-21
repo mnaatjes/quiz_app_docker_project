@@ -27,7 +27,7 @@
         <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
             <a href="/index.php/" class="text-xl font-bold text-gray-800">Quiz App</a>
             <ul class="flex space-x-4">
-                <li><a href="/index.php/" class="text-gray-600 hover:text-gray-900">Home</a></li>
+                <li><a href="/index.php/dashboard" class="text-gray-600 hover:text-gray-900">Home</a></li>
                 <li><a href="/index.php/about" class="text-gray-600 hover:text-gray-900">About</a></li>
                 <li><a href="/index.php/contact" class="text-gray-600 hover:text-gray-900">Contact</a></li>
             </ul>

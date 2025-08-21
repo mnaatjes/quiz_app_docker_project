@@ -5,6 +5,7 @@
     /**
      * @var array $questions
      */
+    //printf('<pre>%s</pre>', json_encode($data, JSON_PRETTY_PRINT));
     $questions = $data["questions"];
 
     /**
@@ -20,10 +21,10 @@
 
     <div class="flex flex-col sm:flex-row sm:space-x-6 text-gray-600 font-medium text-lg">
         <p class="mb-1 sm:mb-0">
-            Category: <span class="text-blue-600 font-semibold"><?php echo htmlspecialchars($quiz["category_id"] ?? 'General'); ?></span>
+            Category: <span class="text-blue-600 font-semibold"><?php echo htmlspecialchars(ucfirst($quiz["category"]) ?? 'General'); ?></span>
         </p>
         <p>
-            Difficulty: <span class="text-blue-600 font-semibold"><?php echo htmlspecialchars($quiz["difficulty_id"] ?? 'Not specified'); ?></span>
+            Difficulty: <span class="text-blue-600 font-semibold"><?php echo htmlspecialchars(ucfirst($quiz["difficulty"]) ?? 'Not specified'); ?></span>
         </p>
     </div>
     <form method="POST">

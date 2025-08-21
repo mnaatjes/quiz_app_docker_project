@@ -78,4 +78,17 @@ use mnaatjes\mvcFramework\SessionsCore\SessionManager;
         $container->get(UserAuth::class)->handler($req, $res, $next);
     }]);
 
+    /**-------------------------------------------------------------------------*/
+    /**
+     * GET /
+     *
+     * Renders the dashboard page of the application.
+     *
+     * @return void
+     */
+    /**-------------------------------------------------------------------------*/
+    $router->get("/quiz/{quiz_id}", [QuizController::class, "show"], [function($req, $res, $next) use($container){
+        $container->get(UserAuth::class)->handler($req, $res, $next);
+    }]);
+
 ?>

@@ -1,7 +1,10 @@
 <?php
 
     namespace App\Services;
-    use App\Models\QuizModel;
+
+use App\Models\CategoryModel;
+use App\Models\DifficultyModel;
+use App\Models\QuizModel;
     use App\Models\UserModel;
     use App\Models\UserQuizModel;
     use mnaatjes\mvcFramework\DataAccess\BaseRepository;
@@ -26,6 +29,8 @@ use mnaatjes\mvcFramework\SessionsCore\SessionManager;
         private BaseRepository $userQuizzesRepo;
         private BaseRepository $questionRepo;
         private BaseRepository $answerRepo;
+        private BaseRepository $categoryRepo;
+        private BaseRepository $difficultyRepo;
         private SessionManager $session;
 
         /**-------------------------------------------------------------------------*/
@@ -38,25 +43,29 @@ use mnaatjes\mvcFramework\SessionsCore\SessionManager;
             BaseRepository $user_quiz_repo,
             BaseRepository $question_repo,
             BaseRepository $answers_repo,
+            BaseRepository $category_repo,
+            BaseRepository $difficulty_repo,
             SessionManager $session_manager,
         ){
             $this->quizRepo         = $quiz_repository;
             $this->userQuizzesRepo  = $user_quiz_repo;
             $this->questionRepo     = $question_repo;
             $this->answerRepo       = $answers_repo;
+            $this->categoryRepo     = $category_repo;
+            $this->difficultyRepo   = $difficulty_repo;
             $this->session          = $session_manager;
         }
 
         /**-------------------------------------------------------------------------*/
         /**
-         * Pull Questions
+         * Generate Questions for a new quiz
          * 
          * @param int $category_id
          * @param int $difficulty_id
          * @param int $length
          */
         /**-------------------------------------------------------------------------*/
-        public function pullQuestions($category_id, $difficulty_id, $length){
+        public function generateQuestions($category_id, $difficulty_id, $length){
             // Query DB table with props
             $data = $this->questionRepo->findByLimit([
                 "category_id"   => $category_id,
@@ -89,7 +98,7 @@ use mnaatjes\mvcFramework\SessionsCore\SessionManager;
          * 
          */
         /**-------------------------------------------------------------------------*/
-        private function getQuestionIds(array $questions){
+        private function parseQuestionIds(array $questions){
             return array_reduce($questions, function($acc, $obj){
                 if(is_a($obj, BaseModel::class)){
                     $acc[] = $obj->getId();
@@ -108,9 +117,9 @@ use mnaatjes\mvcFramework\SessionsCore\SessionManager;
          * @return bool
          */
         /**-------------------------------------------------------------------------*/
-        public function storeQuiz(array $questions, string $title, int $category_id, int $difficulty_id){
+        public function storeQuizRecord(array $questions, string $title, int $category_id, int $difficulty_id){
             // Parse Question Ids
-            $questionIds = $this->getQuestionIds($questions);
+            $questionIds = $this->parseQuestionIds($questions);
 
             // Validate
             if(empty($questionIds)){
@@ -148,7 +157,7 @@ use mnaatjes\mvcFramework\SessionsCore\SessionManager;
          * @return bool
          */
         /**-------------------------------------------------------------------------*/
-        public function storeUserQuiz(int $quiz_id, int $user_id, int $length){
+        public function storeUserQuizRecord(int $quiz_id, int $user_id, int $length){
 
             // Save new record
             $userQuiz = $this->userQuizzesRepo->save(new UserQuizModel([
@@ -172,71 +181,6 @@ use mnaatjes\mvcFramework\SessionsCore\SessionManager;
             // TODO: Validate
             // Return model
             return $userQuiz;
-        }
-
-        /**-------------------------------------------------------------------------*/
-        /**
-         * 
-         */
-        /**-------------------------------------------------------------------------*/
-        public function createDataObject(array $questions, QuizModel $quiz, int $length){
-
-            // Form Question Object
-            $data_object["questions"] = array_reduce($questions, function($acc, $question){
-                //Get id
-                $question_id = $question->getId();
-
-                // Query Answers Table
-                $answers = array_reduce($this->answerRepo->findBy(["question_id" => $question_id]), function($carry, $answer){
-                    $carry[] = $answer->toArray();
-                    // Push
-                    return $carry;
-
-                }, []);
-
-                $question_arr = [
-                    "id"    => $question->getId(),
-                    "text"  => $question->getQuestionText(),
-                    "category"      => $question->getCategoryId(),
-                    "times_asked"   => $question->getTimesAsked(),
-                    "correct_attempts_count"    => $question->getCorrectAttemptsCount(),
-                    "incorrect_attempts_count"  => $question->getIncorrectAttemptsCount(),
-                    "difficulty" => $question->getDifficultyId(),
-                    "skip_count" => $question->getSkipCount(),
-                    "total_time_spent_seconds" => $question->getTotalTimeSpentSeconds(),
-                    "last_played_at" => $question->getLastPlayedAt()
-                ];
-                $question_arr["answers"] = $answers;
-
-                $acc[] = $question_arr;
-
-                // Return acc
-                return $acc;
-            }, []);
-
-            // Append other data
-            $data_object["quiz"] = $quiz->toArray();
-            $data_object["quiz"]["length"] = $length;
-
-            // TODO: Validation and shorted reponse body
-            // Return data object
-            return $data_object;
-        }
-
-        /**-------------------------------------------------------------------------*/
-        /**
-         * Store quiz data in session
-         */
-        /**-------------------------------------------------------------------------*/
-        public function storeQuizSession(array $quiz_data){
-            
-            // TODO: Check if session with user exists
-
-            // Assign to SESSION
-            $_SESSION["quiz_data"] = $quiz_data;
-
-            // Return boolean
-            return true;
         }
 
         /**-------------------------------------------------------------------------*/
@@ -267,10 +211,11 @@ use mnaatjes\mvcFramework\SessionsCore\SessionManager;
                 $quiz = $this->quizRepo->findById($userQuiz->getQuizId());
 
                 // Query Difficulty Table
-                
+                $difficulty = $this->difficultyRepo->findById($quiz->getDifficultyId());
+
 
                 // Query Category Table
-
+                $category = $this->categoryRepo->findById($quiz->getCategoryId());
 
                 // Assemble Data Object
                 $records[] = [
@@ -281,12 +226,89 @@ use mnaatjes\mvcFramework\SessionsCore\SessionManager;
                     "length"        => $userQuiz->getTotalQuestions(),
                     "score"         => $userQuiz->getScore(),
                     "last_played"   => $userQuiz->getLastActivityAt(),
-                    "difficulty"    => $quiz->getDifficultyId(),
-                    "category"      => $quiz->getCategoryId()
+                    "difficulty"    => $difficulty->getName(),
+                    "category"      => $category->getName()
                 ];
             }
             return $records;
 
+        }
+
+        /**-------------------------------------------------------------------------*/
+        /**
+         * Find Category by Id
+         */
+        /**-------------------------------------------------------------------------*/
+        private function findCategoryById(int $category_id): ?CategoryModel{
+            return $this->categoryRepo->findById($category_id) ?? NULL;
+        }
+
+        /**-------------------------------------------------------------------------*/
+        /**
+         * Find Difficulty by Id
+         */
+        /**-------------------------------------------------------------------------*/
+        private function findDifficultyById(int $difficulty_id): ?DifficultyModel{
+            return $this->difficultyRepo->findById($difficulty_id) ?? NULL;
+        }
+
+        /**-------------------------------------------------------------------------*/
+        /**
+         * Get quiz data object from records by quiz id
+         */
+        /**-------------------------------------------------------------------------*/
+        public function getQuizObject(int $quiz_id){
+            /**
+             * Data object to return
+             * @var array $data
+             */
+            $data = [];
+
+            // Pull quiz record from table
+            $quiz = $this->quizRepo->findById($quiz_id);
+            $data["quiz"] = [
+                "id"    => $quiz->getId(),
+                "title" => $quiz->getTitle(),
+                "difficulty" => $this->findDifficultyById(
+                    $quiz->getDifficultyId()
+                )->getName(),
+                "category" => $this->findCategoryById(
+                    $quiz->getCategoryId()
+                )->getName()
+            ];
+            
+            // Use ID Map to pull questions
+            $questions = array_reduce(json_decode($quiz->getQuizIdMap()), function($acc, $id){
+                // Find Question Record
+                $model = $this->questionRepo->findById($id);
+                if(!is_null($model)){
+                    // Assign Object Values
+                    $question = $model->toArray();
+
+                    // Query Answer Data
+                    $answers = $this->answerRepo->findByForeignId("question_id", $model->getId());
+                    
+                    // Assign as property of question
+                    $question["answers"] = array_reduce($answers, function($acc, $obj){
+
+                        $acc[] = $obj->toArray();
+
+                        // Return accumulator
+                        return $acc;
+                    }, []);
+
+                    // Map to return array
+                    $acc[] = $question;   
+                }
+                return $acc;
+            }, []); 
+
+            // Assign properties
+            $data["question_map"] = json_decode($quiz->getQuizIdMap());
+            $data["questions"] = $questions;
+
+            // Return Data Object
+            return $data;
         }
     }
 

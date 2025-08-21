@@ -52,7 +52,26 @@
          * 
          */
         /**-------------------------------------------------------------------------*/
-        public function show(HttpRequest $req, HttpResponse $res, $params): void{}
+        public function show(HttpRequest $req, HttpResponse $res, $params): void{
+
+            /**
+             * Find and validate quiz_id param
+             */
+            if(!isset($params["quiz_id"])){
+                // TODO: Redirect
+                // Failed to find quiz id
+            }
+
+            /**
+             * Use QuizService to assemble quiz data object
+             */
+            $quizDataObject = $this->QuizService->getQuizObject($params["quiz_id"]);
+
+            /**
+             * Render page
+             */
+            $res->render("play_quiz", $quizDataObject);
+        }
 
         /**-------------------------------------------------------------------------*/
         /**
