@@ -20,6 +20,7 @@
         /**-------------------------------------------------------------------------*/
         /**
          * Called in GET /dashboard
+         * TODO: Create specific login method
          */
         /**-------------------------------------------------------------------------*/
         public function index(HttpRequest $req, HttpResponse $res): void{
