@@ -12,41 +12,21 @@
      * - Removed constructor
      * - Reset index(), store(), show()
      * 
-     * @version 1.1.0
+     * @since 1.1.0:
+     * - Cleared index() method
+     * - Moved index() method login to DashboardController@index()
+     * 
+     * @version 1.1.1
      */
     /**-------------------------------------------------------------------------*/
     class QuizController extends AppController {
 
         /**-------------------------------------------------------------------------*/
         /**
-         * Called in GET /dashboard
-         * TODO: Create specific login method
+         * 
          */
         /**-------------------------------------------------------------------------*/
-        public function index(HttpRequest $req, HttpResponse $res): void{
-            /**
-             * Load user object using UserService
-             * @var UserModel $user
-             */
-            $user = $this->UserService->load();
-
-            /**
-             * Load UserQuizzes
-             */
-            $userQuizzes = $this->QuizService->loadUserQuizzes($user->getId());
-            /**
-             * Data object to pass to dashboard
-             * @var array $data
-             */
-            $data = [
-                "user" => $user->toArray(),
-                "user_quizzes" => $userQuizzes
-            ];
-            /**
-             * Render View
-             */
-            $res->render("dashboard", $data);
-        }
+        public function index(HttpRequest $req, HttpResponse $res): void{}
 
         /**-------------------------------------------------------------------------*/
         /**

@@ -11,7 +11,7 @@
         <?php echo htmlspecialchars($message ?? 'Create your account to get started!'); ?>
     </p>
 
-    <form action="/register" method="post" class="space-y-4">
+    <form action="/index.php/users" method="POST" class="space-y-4">
         <!-- Username Input Field -->
         <div>
             <label for="username" class="block text-gray-700 text-sm font-semibold mb-2">Username</label>
@@ -66,7 +66,7 @@
 
         <!-- Submit Button -->
         <div class="flex justify-between items-center">
-            <a href="/index.php/" class="text-sm text-blue-500 hover:underline">Already have an account?</a>
+            <a href="/index.php/login" class="text-sm text-blue-500 hover:underline">Already have an account?</a>
             <button 
                 type="submit" 
                 class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg shadow-lg transform transition-transform duration-200 hover:scale-105"

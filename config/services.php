@@ -25,9 +25,13 @@
      * @version 1.1.0
      */
 
-    use mnaatjes\mvcFramework\DataAccess\Database;
+use App\Controllers\DashboardController;
+use App\Services\ErrorService;
+use mnaatjes\mvcFramework\DataAccess\Database;
     use mnaatjes\mvcFramework\DataAccess\ORM;
     use mnaatjes\mvcFramework\SessionsCore\SessionManager;
+    use App\Services\UserService;
+    use App\Services\QuizService;
 
     /**
      * Declare DB Instance
@@ -67,6 +71,13 @@
     $container->setShared(SessionManager::class, new SessionManager());
 
     /**
+     * Error Handling Class
+     */
+    $container->set(ErrorService::class, new ErrorService(
+        $container->get(SessionManager::class)
+    ));
+
+    /**
      * Required Service Definitions:
      * - Middleware
      * - UserServices
@@ -75,5 +86,13 @@
     require_once("Services/UserServices.php");
     require_once("Services/QuizServices.php");
 
-
+    /**
+     * Dashboard Controller
+     * 
+     */
+    $container->set(DashboardController::class, new DashboardController(
+                $container->get(UserService::class),
+                $container->get(QuizService::class),
+                $container->get(ErrorService::class)
+    ), []);
 ?>

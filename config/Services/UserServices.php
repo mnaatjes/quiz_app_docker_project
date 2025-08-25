@@ -4,7 +4,8 @@
      */
     use App\Controllers\UserController;
     use App\Repositories\UserRepository;
-    use App\Services\UserService;
+use App\Services\ErrorService;
+use App\Services\UserService;
 use mnaatjes\mvcFramework\SessionsCore\SessionManager;
 
     /**
@@ -38,6 +39,7 @@ use mnaatjes\mvcFramework\SessionsCore\SessionManager;
      */
     $container->set(UserController::class, new UserController(
         // Bind User Service
-        $container->get(UserService::class)
+        $container->get(UserService::class),
+        $container->get(ErrorService::class)
     ));
 ?>

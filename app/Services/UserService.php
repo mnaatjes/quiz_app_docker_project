@@ -117,5 +117,31 @@ use mnaatjes\mvcFramework\SessionsCore\SessionManager;
             // Default
             return NULL;
         }
+
+        /**-------------------------------------------------------------------------*/
+        /**
+         * Register user:
+         * - Create new user record
+         * - Populate new model and return
+         */
+        /**-------------------------------------------------------------------------*/
+        public function register($username, $password, $email){
+            // Hash Password
+            $password_hash = $this->hashPassword($password);
+
+            // Align properties, create model, and perform save()
+            $model = $this->repository->save(new UserModel([
+                "username"      => $username,
+                "email"         => $email,
+                "password_hash" =>$password_hash,
+                "first_name"    => "test",
+                "last_name"     => "test",
+                "is_active"     => 1
+            ]));
+
+            var_dump($model);
+
+            // Validate Insert
+        }
     }
 ?>

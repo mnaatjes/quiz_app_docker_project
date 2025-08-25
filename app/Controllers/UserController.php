@@ -23,11 +23,19 @@ use mnaatjes\mvcFramework\HttpCore\HttpRequest;
 
         /**-------------------------------------------------------------------------*/
         /**
-         * Returns one instance
-         * Called by router->post(/login)
+         * User Login Controller Method
+         * 
+         * Takes a POST request and processes user login with UserService
+         * 
+         * @uses UserService@login
+         * @return RedirectResponse
+         * 
+         * @see GET /users/{user_id} on Success
+         * @see GET /login on Failure
+         * 
          */
         /**-------------------------------------------------------------------------*/
-        public function show(HttpRequest $req, HttpResponse $res, array $params): void{
+        public function login($req, $res, $params){
             /**
              * UserService:
              * - Collect parameters
@@ -52,13 +60,55 @@ use mnaatjes\mvcFramework\HttpCore\HttpRequest;
 
                 // Path Fail / Success
                 if($logged_in === true){
-                    // To Dashboard
+                    // Remove existing error from session
+                    if($this->ErrorService->hasSession()){
+                        $this->ErrorService->removeSession();
+                    }
+                    // Route to dashboard
                     $res->redirect("/index.php/dashboard");
                 } else {
-                    // To Fail-Login
-                    $res->redirect("/index.php/login-fail");
+                    /**
+                     * Set error session and return
+                     * 
+                     * @uses ErrorService
+                     * @see GET /login
+                     */
+                    // Set error session
+                    $this->ErrorService->setSession("Unable to Log in!");
+
+                    $res->redirect("/index.php/login");
                 }
             }
         }
+
+        /**-------------------------------------------------------------------------*/
+        /**
+         * User Registration Controller Method
+         * - Validates and sanitized params
+         * - Creates new record in users table
+         * 
+         * @uses UserService@register
+         * 
+         * @see POST /login on Success
+         * @see GET /register on Failure
+         */
+        /**-------------------------------------------------------------------------*/
+        public function create(HttpRequest $req, HttpResponse $res, array $params): void{
+            /**
+             * @uses UserService->register()
+             */
+            $result = $this->UserService->register(
+                $req->getPostParam("username"),
+                $req->getPostParam("password"),
+                $req->getPostParam("email")
+            );
+        }
+
+        /**-------------------------------------------------------------------------*/
+        /**
+         * 
+         */
+        /**-------------------------------------------------------------------------*/
+        public function show(HttpRequest $req, HttpResponse $res, array $params): void{}
     }
 ?>

@@ -1,94 +1,88 @@
 <?php
     /**
-     * routes/web.php
-     *
-     * This file is where you can register web routes for your application. These
-     * routes are loaded by the RouteServiceProvider and all of them will be
-     * assigned to the "web" middleware group.
-     *
-     * This file defines the public-facing pages of the application, such as
-     * the home page, authentication routes, and other user-facing interfaces.
-     *
-     * @package App\Http\Routes
-     * 
-     * @since 1.0.0
-     * - Created
-     * - Refactored
-     * - Added docbloc comments
-     * 
-     * @version 1.1.0
+     * Web Routes
      */
 
-use App\Controllers\QuizController;
-use App\Middleware\UserAuth;
-use mnaatjes\mvcFramework\SessionsCore\SessionManager;
-
-    /**
-     * Web Routes:
-     * - /
-     * - /register
-     * - /dashboard
-     * - /quiz/create
-     * - /quiz/play
-     */
-
+    use mnaatjes\mvcFramework\SessionsCore\SessionManager;
+    use App\Controllers\UserController;
+    use App\Controllers\DashboardController;
+    use App\Middleware\UserAuth;
+    
     /**-------------------------------------------------------------------------*/
     /**
-     * GET /
-     *
-     * Renders the home page of the application.
-     *
-     * This route is the main entry point for the website and serves the
-     * primary landing page.
-     *
+     * Login and Registration
+     * 
+     */
+    /**-------------------------------------------------------------------------*/
+    /**
+     * User Login Form
+     * 
+     * @see GET /
+     * @see GET /login
      * @return void
      */
-    /**-------------------------------------------------------------------------*/
     $router->get("/", function($req, $res) use($container){
         // clear existing sessions
         $container->get(SessionManager::class)->clear();
         // Render Landing Page
-        $res->render("landing");
+        $res->render("login");
+    });
+    /**
+     * 
+     */
+    $router->get("/login", function($req, $res) use($container){
+        // Check for session variable
+        $session = $container->get(SessionManager::class);
+        $data = ["error" => $session->get("error", NULL)];
+
+        // Render Landing Page
+        $res->render("login", $data ?? []);
     });
 
-    /**-------------------------------------------------------------------------*/
     /**
-     * GET /
-     *
-     * Renders the registration page of the application.
-     *
+     * User login form handling
+     * 
+     * @see POST /login
      * @return void
      */
-    /**-------------------------------------------------------------------------*/
-    $router->get("/register", function($req, $res){
+    $router->post("/login", [UserController::class, "login"]);
+
+    /**
+     * User Registration form 
+     * 
+     * @see GET /register
+     * @return void
+     */
+    $router->get("/register", function($req, $res) use($container){
+        // Check for session
+        $session = $container->get(SessionManager::class);
+        $data = ["error" => $session->get("error", NULL)];
+
         // Render Registraton Page
-        $res->render("register");
+        $res->render("register", $data ?? []);
     });
 
-    /**-------------------------------------------------------------------------*/
     /**
-     * GET /
-     *
-     * Renders the dashboard page of the application.
-     *
+     * User Creation after form submission
+     * 
+     * @see POST/users
      * @return void
      */
-    /**-------------------------------------------------------------------------*/
-    $router->get("/dashboard", [QuizController::class, "index"], [function($req, $res, $next) use($container){
-        $container->get(UserAuth::class)->handler($req, $res, $next);
-    }]);
+    $router->post("/users", [UserController::class, "create"]);
 
     /**-------------------------------------------------------------------------*/
     /**
-     * GET /
-     *
-     * Renders the dashboard page of the application.
-     *
-     * @return void
+     * Dashboard
      */
     /**-------------------------------------------------------------------------*/
-    $router->get("/quiz/{quiz_id}", [QuizController::class, "show"], [function($req, $res, $next) use($container){
-        $container->get(UserAuth::class)->handler($req, $res, $next);
-    }]);
+    /**
+     * GET /dashboard
+     */
+    $router->get("/dashboard", [DashboardController::class, "index"], [
+        function($req, $res, $next) use($container){
+            $container->get(UserAuth::class)->handler($req, $res, $next);
+        }
+    ]);
+
 
 ?>

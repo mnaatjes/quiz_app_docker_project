@@ -81,7 +81,6 @@
      * Include All Routes files
      */
     require_once(APP_DIR . "/routes/web.php");
-    require_once(APP_DIR . "/routes/api.php");
 
     /**
      * Dispatch Router
