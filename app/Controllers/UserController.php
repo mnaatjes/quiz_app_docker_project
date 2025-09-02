@@ -76,6 +76,7 @@ use mnaatjes\mvcFramework\HttpCore\HttpRequest;
                     // Set error session
                     $this->ErrorService->setSession("Unable to Log in!");
 
+                    // Redirect
                     $res->redirect("/index.php/login");
                 }
             }
@@ -95,6 +96,7 @@ use mnaatjes\mvcFramework\HttpCore\HttpRequest;
         /**-------------------------------------------------------------------------*/
         public function create(HttpRequest $req, HttpResponse $res, array $params): void{
             /**
+             * Create new Record in Users database
              * @uses UserService->register()
              */
             $result = $this->UserService->register(
@@ -102,6 +104,20 @@ use mnaatjes\mvcFramework\HttpCore\HttpRequest;
                 $req->getPostParam("password"),
                 $req->getPostParam("email")
             );
+
+            // Validate Model was created
+            if(is_null($result)){
+                // Set error in session
+                $this->ErrorService->setSession("Failed to Register");
+                // Redirect on failure
+                $res->redirect("/index.php/register");
+            }
+
+            /**
+             * Log User in and proceed to Dashboard
+             * @uses UserController->login()
+             */
+            $this->login($req, $res, $params);
         }
 
         /**-------------------------------------------------------------------------*/

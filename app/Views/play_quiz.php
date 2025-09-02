@@ -5,7 +5,7 @@
     /**
      * @var array $questions
      */
-    //printf('<pre>%s</pre>', json_encode($data, JSON_PRETTY_PRINT));
+    printf('<pre>%s</pre>', json_encode($data, JSON_PRETTY_PRINT));
     $questions = $data["questions"];
 
     /**
@@ -27,7 +27,7 @@
             Difficulty: <span class="text-blue-600 font-semibold"><?php echo htmlspecialchars(ucfirst($quiz["difficulty"]) ?? 'Not specified'); ?></span>
         </p>
     </div>
-    <form method="POST">
+    <form method="POST" action="/index.php/quizzes/<?php echo($quiz["id"]);?>/submit">
     <?php
         // Questions Loop
         foreach($questions as $question_index => $question):
@@ -50,12 +50,13 @@
             <p class="text-lg font-semibold text-gray-800 mb-3">
                 <?php echo $question_num . ") " . $question["question_text"]; ?>
             </p>
+            <input type="hidden" id="times_asked_<?php echo($question["id"]); ?>" name="times_asked_<?php echo($question["id"]); ?>" value="<?php echo((int)$question["times_asked"] + 1); ?>">
             <div class="flex flex-col space-y-2">
                 <?php
                     foreach ($answers as $answer_index => $answer):
                 ?>
                     <span class="text-sm font-medium">
-                        <input type="radio" name="q_id_<?php echo $question["id"]?>" id="a_id_<?php echo $answer["id"] ?>" value="<?php echo $answer["id"] ?>">
+                        <input type="radio" name="selection_<?php echo $answer["id"] ?>" id="selection_<?php echo $answer["id"] ?>" value="answer_id_<?php echo $answer["id"] ?>">
                         <?php echo htmlspecialchars($answer_bullets[$answer_index] . ") " . $answer['answer_text']); ?>
                     </span>
                 <?php
@@ -66,6 +67,10 @@
     <?php
         endforeach;
     ?>
+        <!--Start Hidden Inputs-->
+        <input type="hidden" id="quiz_id" name="quiz_id" value="<?php echo($quiz["id"]);?>">
+        <input type="hidden" id="quiz_id_map" name="quiz_id_map" value="<?php echo(json_encode($data["question_map"]));?>">
+        <!--End Hidden Inputs-->
         <div class="mt-8 flex justify-end space-x-4">
             <button type="reset" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-6 rounded-lg shadow-lg transition-transform duration-200 hover:scale-105">
                 Reset

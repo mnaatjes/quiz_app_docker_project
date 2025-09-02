@@ -310,6 +310,15 @@ use mnaatjes\mvcFramework\SessionsCore\SessionManager;
             // Return Data Object
             return $data;
         }
+
+        /**-------------------------------------------------------------------------*/
+        /**
+         * Update submitted quiz
+         */
+        /**-------------------------------------------------------------------------*/
+        public function updateSubmittedQuiz(){
+            
+        }
     }
 
 ?>

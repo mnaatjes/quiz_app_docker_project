@@ -15,7 +15,7 @@
         <h1 class="text-3xl font-bold text-gray-800">
             <?php echo htmlspecialchars($title ?? 'Dashboard'); ?>
         </h1>
-        <a href="/index.php/quiz/create" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg shadow-lg transform transition-transform duration-200 hover:scale-105">
+        <a href="/index.php/quizzes/create" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg shadow-lg transform transition-transform duration-200 hover:scale-105">
             New Quiz
         </a>
     </div>
@@ -63,7 +63,7 @@
                                 <?php echo htmlspecialchars($quiz['title']); ?>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                <a href="/index.php/quiz/<?php echo $quiz["id"];?>" class="text-blue-600 hover:text-blue-900">Play Again</a>
+                                <a href="/index.php/quizzes/<?php echo $quiz["id"];?>" class="text-blue-600 hover:text-blue-900">Play Again</a>
                             </td>
                         </tr>
                     <?php endforeach; ?>

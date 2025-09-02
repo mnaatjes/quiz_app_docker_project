@@ -8,7 +8,7 @@
     </h1>
 
     <!-- The form for creating a new quiz -->
-    <form action="/index.php/quiz/store" method="POST" class="space-y-6">
+    <form action="/index.php/quizzes/create" method="POST" class="space-y-6">
         <!-- Quiz Title Input -->
         <div>
             <label for="title" class="block text-sm font-semibold text-gray-700 mb-2">Quiz Title</label>

@@ -3,6 +3,7 @@
     namespace App\Services;
     use App\Models\UserModel;
 use App\Repositories\UserRepository;
+use App\Utils\Utility;
 use mnaatjes\mvcFramework\HttpCore\HttpRequest;
 use mnaatjes\mvcFramework\HttpCore\HttpResponse;
 use mnaatjes\mvcFramework\MVCCore\BaseModel;
@@ -46,6 +47,22 @@ use mnaatjes\mvcFramework\SessionsCore\SessionManager;
             // Session
             $this->session = $session_manager;
         }
+
+        /**-------------------------------------------------------------------------*/
+        /**
+         * Get Logged In User properties stored in the session
+         */
+        /**-------------------------------------------------------------------------*/
+        public function getUserFromSession(){
+            if(!$this->session->has("user_id")){
+                // Failure
+                return NULL;
+            }
+
+            // Return user id
+            return $this->session->get("user_id", NULL);
+        }
+
 
         /**-------------------------------------------------------------------------*/
         /**
@@ -133,15 +150,24 @@ use mnaatjes\mvcFramework\SessionsCore\SessionManager;
             $model = $this->repository->save(new UserModel([
                 "username"      => $username,
                 "email"         => $email,
-                "password_hash" =>$password_hash,
-                "first_name"    => "test",
-                "last_name"     => "test",
-                "is_active"     => 1
+                "password_hash" => $password_hash,
+                "first_name"    => "asdasdsa",
+                "last_name"     => "sdadsdasa",
+                "created_at"    => Utility::createTS(),
+                "updated_at"    => Utility::createTS(),
+                "is_active"     => 1,
+                "last_login_at" => Utility::createTS()
             ]));
 
-            var_dump($model);
-
             // Validate Insert
+            if(is_a($model, UserModel::class)){
+                // Return Model on success
+                return $model;
+            }
+            else {
+                // Return on failure
+                return NULL;
+            }
         }
     }
 ?>

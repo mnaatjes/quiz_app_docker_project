@@ -38,20 +38,13 @@ use mnaatjes\mvcFramework\SessionsCore\SessionManager;
             if($this->session->has("user_id") && is_numeric($this->session->get("user_id"))){
                 $next();
             } else {
-                $res->redirect("/index.php/auth-failure");
+                // Set error session 
+                $this->session->set("error", "Unknown User");
+
+                // Redirect
+                $res->redirect("/index.php/login");
             }
         }
-
-        /**
-         * OnFailure
-         */
-        public function onFailure(HttpRequest $req, HttpResponse $res, callable $next){
-            // Render
-            $res->render("landing", [
-                "error" => "Unknown User"
-            ]);
-        }
-
     }
 
 ?>

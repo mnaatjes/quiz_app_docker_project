@@ -30,7 +30,7 @@
 
         /**-------------------------------------------------------------------------*/
         /**
-         * 
+         * Assemble quiz into data object and render 
          */
         /**-------------------------------------------------------------------------*/
         public function show(HttpRequest $req, HttpResponse $res, $params): void{
@@ -41,6 +41,7 @@
             if(!isset($params["quiz_id"])){
                 // TODO: Redirect
                 // Failed to find quiz id
+                var_dump("Count not find quiz: " . $params["quiz_id"] . " to play!");
             }
 
             /**
@@ -56,54 +57,28 @@
 
         /**-------------------------------------------------------------------------*/
         /**
-         * 
+         * Create new quiz record, userquiz record
          */
         /**-------------------------------------------------------------------------*/
-        public function store(HttpRequest $req, HttpResponse $res, $params): void{}
-        public function _store(HttpRequest $req, HttpResponse $res, $params): void{
-
+        public function create(HttpRequest $req, HttpResponse $res, $params): void{
             /**
-             * Check User Service for authentic user
+             * Retrieve user_id from session
              */
-            $isValidUser = $this->UserService->isValidSession();
-
-            if($isValidUser === false){
-                var_dump("Error: Unable to authenticate user!");
+            $user_id = $this->UserService->getUserFromSession();
+            if(is_null($user_id)){
+                // Set error message and redirect on failure
+                $this->ErrorService->setSession("Unknown User");
+                $res->redirect("/index.php/login");
             }
-            
-            /**
-             * Quiz Store Flow
-             * 1) Capture Params:
-             *      - user_id
-             *      - difficulty_id
-             *      - category_id
-             *      - title
-             *      - assign length (default = 10)
-             * 
-             * 2) Pull Questions by cat_id, diff_id:
-             *      - Generate quiz_id_map JSON string
-             * 
-             * 3) Create record in quizzes table:
-             *      - insert: quiz_id_map, description, cat_id, diff_id
-             *      - grab lastInsertId as quiz_id
-             * 
-             * 4) Create Record in UserQuizzes table:
-             *      - use user_id, quiz_id, length
-             *      - grab lastInsertId as user_quiz_id
-             * 
-             * 5) Return relavant data via API:
-             *      - Query answers for associated question_ids_arr
-             *      - format JSON response
-             *      - Send Data and redirect
-             */
+
             // Define Properties
             $category_id    = $req->getPostParam("category_id");
             $difficulty_id  = $req->getPostParam("difficulty_id");
             $title          = $req->getPostParam("title");
-            $length         = 10;
+            $length         = 10; // TODO: Alter / Assign as default to now
 
             // Pull Questions
-            $questions = $this->UserService->pullQuestions(
+            $questions = $this->QuizService->generateQuestions(
                 $category_id,
                 $difficulty_id,
                 $length
@@ -116,7 +91,7 @@
             }
 
             // Store Quiz
-            $quiz = $this->UserService->storeQuiz(
+            $quiz = $this->QuizService->storeQuizRecord(
                 $questions,
                 $title,
                 $category_id,
@@ -128,36 +103,50 @@
                 var_dump("Error: Unable to save quiz!");
             }
 
-            // DEBUGGING TODO: Change to session variable
-            $user_id = 12;
-
             // Create Record in UserQuizzes to DB Table 
-            $userQuiz = $this->UserService->storeUserQuiz($quiz->getId(), $_SESSION["user_id"], $length);
+            $userQuiz = $this->QuizService->storeUserQuizRecord($quiz->getId(), $_SESSION["user_id"], $length);
             
             // Validate
             if(!is_object($userQuiz)){
                 var_dump("Error: Unable to store UserQuiz!");
             }
 
-            // Form Data Response Object
-            $dataObject = $this->UserService->createDataObject(
-                $questions,
-                $quiz,
-                $length
-            );
-            
-            // Store Quiz to Session
-            $stored = $this->UserService->storeQuizSession($dataObject);
+            /**
+             * Redirect to play quiz
+             * @see /quizzes/{quiz_id}
+             */
+            $res->redirect("/index.php/quizzes/" . $quiz->getId());
+        }        
+        /**-------------------------------------------------------------------------*/
+        /**
+         * Update completed quiz after play or abandonment
+         * @see /quizzes/{quiz_id}/submit
+         */
+        /**-------------------------------------------------------------------------*/
+        public function submit($req, $res, $params): void{
+            /**
+             * Collect Form Data
+             */
+            var_dump($req->getPostParams());
 
-            if($stored === true){
-                // Redirect
-                //$res->redirect("/index.php/quiz/play");
-                $res->redirect("/index.php/quiz/test");
+            /**
+             * Parse form data into associated models
+             */
 
-            } else {
-                // Error
-                var_dump("Error: Unable to store quiz!");
-            }
+
+            /**
+             * Update Records:
+             * - users
+             * - quizzes
+             * - user_quizzes
+             * - questions
+             * - answers
+             */
+
+            /**
+             * Redirect to dashboard
+             */
+            //$res->redirect("/index.php/dashboard");
         }
     }
 

@@ -16,6 +16,7 @@ use App\Repositories\UserQuizRepository;
 use App\Services\QuizService;
 use App\Services\UserService;
 use mnaatjes\mvcFramework\SessionsCore\SessionManager;
+use App\Services\ErrorService;
 
     /**
      * Bind the Session Manager singleton to DI Container
@@ -45,7 +46,8 @@ use mnaatjes\mvcFramework\SessionsCore\SessionManager;
      */
     $container->set(QuizController::class, new QuizController(
         $container->get(QuizService::class),
-        $container->get(UserService::class)
+        $container->get(UserService::class),
+        $container->get(ErrorService::class)
     ));
 
 

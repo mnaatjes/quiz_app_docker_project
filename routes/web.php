@@ -6,7 +6,8 @@
     use mnaatjes\mvcFramework\SessionsCore\SessionManager;
     use App\Controllers\UserController;
     use App\Controllers\DashboardController;
-    use App\Middleware\UserAuth;
+use App\Controllers\QuizController;
+use App\Middleware\UserAuth;
     
     /**-------------------------------------------------------------------------*/
     /**
@@ -83,6 +84,58 @@
             $container->get(UserAuth::class)->handler($req, $res, $next);
         }
     ]);
+
+    /**
+     * GET /quizzes/create
+     * Route to form for creating new Quiz
+     */
+    $router->get("/quizzes/create", function($req, $res, $params){
+        // Render form page
+        $res->render("create_quiz");
+    });
+
+    /**
+     * POST /quizzes/create
+     * Route to QuizController to create new record in quizzes table
+     * @uses QuizController->create()
+     * @uses UserAuth->handler()
+     * @return void
+     */
+    $router->post("/quizzes/create", [QuizController::class, "create"], [
+        function($req, $res, $next) use($container){
+            $container->get(UserAuth::class)->handler($req, $res, $next);
+        }
+    ]);
+
+    /**
+     * GET /quizzes/{quiz_id}
+     * Route to play quiz
+     * 
+     * @uses QuizController->show()
+     * @uses UserAuth->handler()
+     * @return void
+     */
+    $router->get("/quizzes/{quiz_id}", [QuizController::class, "show"], [
+        function($req, $res, $next) use($container){
+            $container->get(UserAuth::class)->handler($req, $res, $next);
+        }
+    ]);
+
+    /**
+     * POST /quizzes/{quiz_id}/submit
+     * Route for submitted quiz after play / abandon
+     * 
+     * @uses QuizController->submit()
+     * @uses UserAuth->handler()
+     * @return void
+     */
+    $router->post("/quizzes/{quiz_id}/submit", [QuizController::class, "submit"], [
+        function($req, $res, $next) use($container){
+            $container->get(UserAuth::class)->handler($req, $res, $next);
+        }
+    ]);
+
+    
 
 
 ?>
