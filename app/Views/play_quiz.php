@@ -9,6 +9,7 @@
     $questions = $data["questions"];
 
     /**
+     * Something
      * @var array $quiz
      */
     $quiz = $data["quiz"];
