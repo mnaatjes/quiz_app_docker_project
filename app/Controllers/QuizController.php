@@ -139,7 +139,8 @@ use mnaatjes\mvcFramework\DataAccess\BaseRepository;
             $quiz_id        = is_numeric($req->getPostParam("quiz_id")) ? (int)$req->getPostParam("quiz_id") : NULL;
             $quiz_id_map    = json_decode($req->getPostParam("question_map"));
             $user           = $this->UserService->load();
-            $answers_array  = $req->getPostParam("answers");
+            $answers_param  = $req->getPostParam("answers");
+            $answers_array  = (is_array($answers_param) && !empty($answers_param)) ? $answers_param : [];
 
             /**
              * Update Submitted Quiz
@@ -159,7 +160,7 @@ use mnaatjes\mvcFramework\DataAccess\BaseRepository;
                 $res->redirect("/index.php/quizzes/" . $quiz_id . "/results");
             } else {
                 // TODO: Redirect to Quiz Save failure
-                Utility::printJSON("FAILURE!");
+                $res->redirect("/index.php/dashboard");
 
             }
         }
@@ -190,9 +191,20 @@ use mnaatjes\mvcFramework\DataAccess\BaseRepository;
              * @var array $data
              */
             $data = [
-                "user_quiz" => $userQuiz->toArray(),
-                "quiz"      => $quiz->toArray(),
-                "questions" => array_map(function($model){return $model->toArray();}, $questions),
+                "user_quiz" => [
+                    "score" => $userQuiz->getScore(),
+                    "correct_answers_count" => $userQuiz->getCorrectAnswersCount(),
+                    "incorrect_answers_count" => $userQuiz->getIncorrectAnswersCount(),
+                    "skipped_questions_count" => $userQuiz->getSkippedQuestionsCount(),
+                    "completed_at" => $userQuiz->getCompletedAt(),
+                    "total_questions" => $userQuiz->getTotalQuestions()
+                ],
+                "quiz" => [
+                    "id" => $quiz->getId(),
+                    "title" => $quiz->getTitle()
+                ],
+                // TODO: Add questions investigation
+                //"questions" => array_map(function($model){return $model->toArray();}, $questions),
             ];
             // Render Data
             $res->render("quiz_results", $data);

@@ -12,6 +12,7 @@
     use mnaatjes\mvcFramework\MVCCore\BaseModel;
     use mnaatjes\mvcFramework\SessionsCore\SessionManager;
     use App\Utils\Utility;
+use PDO;
 
     /**-------------------------------------------------------------------------*/
     /**

@@ -6,7 +6,7 @@
     <div>
         <small>
             <?php
-            $user    = $data["user"];
+            //$user    = $data["user"];
             $quizzes = $data["user_quizzes"];
             ?>
         </small>
@@ -18,9 +18,6 @@
         <a href="/index.php/quizzes/create" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg shadow-lg transform transition-transform duration-200 hover:scale-105">
             New Quiz
         </a>
-    </div>
-    <div>
-        <b><?php echo($user["username"]);?></b>
     </div>
 
     <!-- Check if the quizzes data exists and is not empty -->

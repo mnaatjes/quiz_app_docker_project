@@ -98,6 +98,7 @@ use mnaatjes\mvcFramework\SessionsCore\SessionManager;
                 // Set Session & user_id property
                 $this->session->start();
                 $this->session->set("user_id", $model->getId());
+                $this->session->set("username", $model->getUsername());
 
                 // TODO: Update updated_at, last_login_at properties
                 

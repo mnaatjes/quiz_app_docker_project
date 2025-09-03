@@ -6,8 +6,8 @@
     use mnaatjes\mvcFramework\SessionsCore\SessionManager;
     use App\Controllers\UserController;
     use App\Controllers\DashboardController;
-use App\Controllers\QuizController;
-use App\Middleware\UserAuth;
+    use App\Controllers\QuizController;
+    use App\Middleware\UserAuth;
     
     /**-------------------------------------------------------------------------*/
     /**
@@ -92,7 +92,11 @@ use App\Middleware\UserAuth;
     $router->get("/quizzes/create", function($req, $res, $params){
         // Render form page
         $res->render("create_quiz");
-    });
+    }, [
+        function($req, $res, $next) use($container){
+            $container->get(UserAuth::class)->handler($req, $res, $next);
+        }
+    ]);
 
     /**
      * POST /quizzes/create
@@ -149,7 +153,22 @@ use App\Middleware\UserAuth;
         }
     ]);
 
-    
+    /**
+     * GET /contact
+     * Route for contact form
+     */
+    $router->get("/contact", function($req, $res, $params){
+        $res->render("contact");
+    });
+
+
+    /**
+     * GET /about
+     * Route for about page
+     */
+    $router->get("/about", function($req, $res, $params){
+        $res->render("about");
+    });
 
 
 ?>
