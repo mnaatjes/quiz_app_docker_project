@@ -3,6 +3,10 @@
 
 // This is the main layout file for your application.
 // It includes the HTML boilerplate, header, footer, and a placeholder for the view's content.
+
+use App\Utils\Utility;
+Utility::debugSession();
+
 ?>
 <!DOCTYPE html>
 <html lang="en">

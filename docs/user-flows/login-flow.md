@@ -1,6 +1,6 @@
 # Login User Flow
 
-## 1.0 Graphial Route Map
+## 1.0 Graphial User Flow Map
 ```
 [Entry-point]
 |
@@ -18,3 +18,5 @@
         ├─── (Failure) Redirect /login
         └─── (Success) Redirect /dashboard
 ```
+
+## 2.0 Login Sequence Diagram
