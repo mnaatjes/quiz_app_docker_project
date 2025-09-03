@@ -49,6 +49,14 @@
     $router->post("/login", [UserController::class, "login"]);
 
     /**
+     * User logout
+     * 
+     * @see GET /logout
+     * @return void
+     */
+    $router->get("/logout", [UserController::class, "logout"]);
+
+    /**
      * User Registration form 
      * 
      * @see GET /register

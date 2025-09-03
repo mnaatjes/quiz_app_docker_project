@@ -170,5 +170,15 @@ use mnaatjes\mvcFramework\SessionsCore\SessionManager;
                 return NULL;
             }
         }
+
+        /**-------------------------------------------------------------------------*/
+        /**
+         * Clears all session data to log the user out.
+         */
+        /**-------------------------------------------------------------------------*/
+        public function logout(): void
+        {
+            $this->session->clear();
+        }
     }
 ?>

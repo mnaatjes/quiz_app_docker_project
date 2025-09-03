@@ -122,6 +122,23 @@ use mnaatjes\mvcFramework\HttpCore\HttpRequest;
 
         /**-------------------------------------------------------------------------*/
         /**
+         * Logs the user out.
+         *
+         * Clears the session and redirects the user to the login page.
+         * 
+         * @param HttpRequest $req
+         * @param HttpResponse $res
+         * @return void
+         */
+        /**-------------------------------------------------------------------------*/
+        public function logout(HttpRequest $req, HttpResponse $res): void
+        {
+            $this->UserService->logout();
+            $res->redirect("/index.php/login");
+        }
+
+        /**-------------------------------------------------------------------------*/
+        /**
          * 
          */
         /**-------------------------------------------------------------------------*/

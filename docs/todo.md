@@ -5,7 +5,9 @@
 - [x] Complete QuizController->results();
 - [x] Create `docs/` directory for quiz_app
 - [ ] Create Features list in `docs/`
-- [ ] Move `todo.md` to docs
+- [x] Move `todo.md` to docs
+- [x] Generate `site-map.md` file and compose site-map for public
+  - [ ] Edit and refine `site-map.md`
 
 ### 1.1 General Backend
 - [ ] Refine **data-flow**  and **data-object** of objects passed from-database-table -> to-render
@@ -25,9 +27,12 @@
 - [ ] Integrate User Nav Section with UserService->$session
 - [ ] Define Flow of User Session Persistence
 - [ ] Determine conditions for User Session Unset
+  - [x] Generate logout() method for UserService
+  - [ ] Test UserService->logout();
 
 ### 2.2 User Login Flow
 - [ ] Define User Login Flow
+  - [ ] Refine in `docs/site-map.md`
 - [ ] **Refine Password validation mechanisms**
   - [ ] Update Password Hashing method
   - [ ] Integrate password hashing
