@@ -123,13 +123,27 @@ use App\Middleware\UserAuth;
 
     /**
      * POST /quizzes/{quiz_id}/submit
-     * Route for submitted quiz after play / abandon
+     * Route for submitted quiz after play / abandon submission
      * 
      * @uses QuizController->submit()
      * @uses UserAuth->handler()
      * @return void
      */
     $router->post("/quizzes/{quiz_id}/submit", [QuizController::class, "submit"], [
+        function($req, $res, $next) use($container){
+            $container->get(UserAuth::class)->handler($req, $res, $next);
+        }
+    ]);
+
+    /**
+     * GET /quizzes/{quiz_id}/results
+     * Route for submitted quiz after submission and update
+     * 
+     * @uses QuizController->results()
+     * @uses UserAuth->handler()
+     * @return void
+     */
+    $router->get("/quizzes/{quiz_id}/results", [QuizController::class, "results"], [
         function($req, $res, $next) use($container){
             $container->get(UserAuth::class)->handler($req, $res, $next);
         }

@@ -1,7 +1,11 @@
 <?php
     namespace App\Controllers;
     use App\Controllers\AppController;
-    use mnaatjes\mvcFramework\DataAccess\BaseRepository;
+use App\Models\AnswerModel;
+use App\Models\QuestionModel;
+use App\Models\UserQuizModel;
+use App\Utils\Utility;
+use mnaatjes\mvcFramework\DataAccess\BaseRepository;
     use mnaatjes\mvcFramework\HttpCore\HttpRequest;
     use mnaatjes\mvcFramework\HttpCore\HttpResponse;
     /**-------------------------------------------------------------------------*/
@@ -127,26 +131,71 @@
             /**
              * Collect Form Data
              */
-            var_dump($req->getPostParams());
+            //printf('<pre>%s</pre>', json_encode($req->getPostParams(), JSON_PRETTY_PRINT));
 
             /**
              * Parse form data into associated models
              */
-
-
-            /**
-             * Update Records:
-             * - users
-             * - quizzes
-             * - user_quizzes
-             * - questions
-             * - answers
-             */
+            $quiz_id        = is_numeric($req->getPostParam("quiz_id")) ? (int)$req->getPostParam("quiz_id") : NULL;
+            $quiz_id_map    = json_decode($req->getPostParam("question_map"));
+            $user           = $this->UserService->load();
+            $answers_array  = $req->getPostParam("answers");
 
             /**
-             * Redirect to dashboard
+             * Update Submitted Quiz
+             * @var bool $updatedQuiz True on Success
              */
-            //$res->redirect("/index.php/dashboard");
+            $quizUpdated = $this->QuizService->updateSubmittedQuiz(
+                $user->getId(),
+                $quiz_id,
+                $answers_array,
+                $quiz_id_map
+            );
+
+            /**
+             * Validate result and redirect accordingly
+             */
+            if($quizUpdated){
+                $res->redirect("/index.php/quizzes/" . $quiz_id . "/results");
+            } else {
+                // TODO: Redirect to Quiz Save failure
+                Utility::printJSON("FAILURE!");
+
+            }
+        }
+
+        /**-------------------------------------------------------------------------*/
+        /**
+         * Show Results of Submitted Quiz
+         */
+        /**-------------------------------------------------------------------------*/
+        public function results($req, $res, $params){
+            // Collect parameters
+            $user    = $this->UserService->load();
+            $quiz_id = is_numeric($params["quiz_id"]) ? (int)$params["quiz_id"] : NULL;
+
+            // Load Quiz
+            $quiz = $this->QuizService->loadQuiz($quiz_id);
+            
+            // Load User Quiz
+            $userQuiz = $this->QuizService->loadUserQuiz($user->getId(), $quiz_id);
+
+            // Load Questions
+            $questions = array_map(function($id){
+                // Grab Model and return
+                $model = $this->QuizService->loadQuestion($id);
+                return (is_a($model, QuestionModel::class)) ? $model : NULL;
+            }, json_decode($quiz->getQuizIdMap()));
+            /**
+             * @var array $data
+             */
+            $data = [
+                "user_quiz" => $userQuiz->toArray(),
+                "quiz"      => $quiz->toArray(),
+                "questions" => array_map(function($model){return $model->toArray();}, $questions),
+            ];
+            // Render Data
+            $res->render("quiz_results", $data);
         }
     }
 

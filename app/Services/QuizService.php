@@ -2,14 +2,16 @@
 
     namespace App\Services;
 
-use App\Models\CategoryModel;
-use App\Models\DifficultyModel;
-use App\Models\QuizModel;
-    use App\Models\UserModel;
+    use App\Models\AnswerModel;
+    use App\Models\CategoryModel;
+    use App\Models\DifficultyModel;
+    use App\Models\QuestionModel;
+    use App\Models\QuizModel;
     use App\Models\UserQuizModel;
     use mnaatjes\mvcFramework\DataAccess\BaseRepository;
     use mnaatjes\mvcFramework\MVCCore\BaseModel;
-use mnaatjes\mvcFramework\SessionsCore\SessionManager;
+    use mnaatjes\mvcFramework\SessionsCore\SessionManager;
+    use App\Utils\Utility;
 
     /**-------------------------------------------------------------------------*/
     /**
@@ -155,6 +157,8 @@ use mnaatjes\mvcFramework\SessionsCore\SessionManager;
          * @param int $category_id
          * @param int $difficulty_id
          * @return bool
+         * 
+         * TODO: change name of function to "storeNew..." or "insert..."
          */
         /**-------------------------------------------------------------------------*/
         public function storeUserQuizRecord(int $quiz_id, int $user_id, int $length){
@@ -314,10 +318,304 @@ use mnaatjes\mvcFramework\SessionsCore\SessionManager;
         /**-------------------------------------------------------------------------*/
         /**
          * Update submitted quiz
+         * 
+         * @param int $user_id
+         * @param int $quiz_id
+         * @param array $answers_array Array of question_id => answer_id pairs of id strings: "2342" => "342" from POST params
+         * @param array $quiz_id_map Array of question id strings: "32423", "234324", "24243" from POST params
+         * @return bool True on success
          */
         /**-------------------------------------------------------------------------*/
-        public function updateSubmittedQuiz(){
+        public function updateSubmittedQuiz($user_id, $quiz_id, $answers_array, $quiz_id_map){
+            /**
+             * Update Questions and Answers
+             */
+            $userQuizData = $this->updateSubmittedQuestions($answers_array, $quiz_id_map);
+
+            // Validate Update of Questions
+            if(!is_array($userQuizData) || empty($userQuizData)){
+                // Exit failure
+                return false;
+            }
+            /**
+             * Update UserQuiz
+             */
+            $userQuizUpdated = $this->updateSubmittedUserQuiz($user_id, $quiz_id, $userQuizData);
+
+            // Return result
+            return $userQuizUpdated;
             
+        }
+
+        /**-------------------------------------------------------------------------*/
+        /**
+         * Update Submitted UserQuiz
+         */
+        /**-------------------------------------------------------------------------*/
+        public function updateSubmittedUserQuiz(int $user_id, int $quiz_id, array $data){
+            // Get existing model
+            $model = $this->loadUserQuiz($user_id, $quiz_id);
+
+            // Validate
+            if(is_null($model)){
+                // Exit
+                return false;
+            }
+
+            // Update with new data
+            $model->setStartedAt($data["started_at"]);
+            $model->setCompletedAt($data["completed_at"]);
+            $model->setScore($data["score"]);
+            $model->setCorrectAnswersCount($data["correct_answers_count"]);
+            $model->setIncorrectAnswersCount($data["incorrect_answers_count"]);
+            $model->setSkippedQuestionsCount($data["skipped_questions_count"]);
+            $model->setTimeTakenSeconds($data["time_taken_seconds"]);
+            $model->setIsCompleted($data["is_completed"]);
+            $model->setLastActivityAt($data["last_activity_at"]);
+
+            // Update UserQuiz Record and return result
+            return $this->updateUserQuizRecord($model);
+        }
+
+        /**-------------------------------------------------------------------------*/
+        /**
+         * Update Submitted Questions and Answers
+         * 
+         * @param array $answers_array Array of question_id => answer_id pairs of id strings: "2342" => "342" from POST params
+         * @param array $quiz_id_map Array of question id strings: "32423", "234324", "24243" from POST params
+         * @return array|bool False on failure; Assoc Array of data for User Quiz on success
+         */
+        /**-------------------------------------------------------------------------*/
+        public function updateSubmittedQuestions($answers_array, $quiz_id_map){
+            /**
+             * User Quiz Data for updating user quiz record
+             * @var array $data
+             */
+            $data = [
+                "started_at" => Utility::getCurrentTS(), // TODO: Change value to real value
+                "completed_at" => Utility::getCurrentTS(),
+                "score" => 0,
+                "correct_answers_count" => 0,
+                "incorrect_answers_count" => 0,
+                "skipped_questions_count" => 0,
+                "time_taken_seconds" => 0,
+                "is_completed" => 0,
+                "last_activity_at" => Utility::getCurrentTS()
+            ];
+
+            /**
+             * Loop and update Question and Answer Records
+             */
+            foreach($quiz_id_map as $question_id){
+                /**
+                 * Load question model from id
+                 * @var QuestionModel $questionModel
+                 */
+                $questionModel = $this->loadQuestion((int)$question_id);
+
+                // Collect Existing Question Properties
+                $timesAsked = $questionModel->getTimesAsked() + 1;
+                $skipCount  = $questionModel->getSkipCount();
+                $correctCount   = $questionModel->getCorrectAttemptsCount();
+                $incorrectCount = $questionModel->getIncorrectAttemptsCount();
+
+                // Find Answer Models
+                $answers = $this->loadAnswers((int)$question_id);
+
+                // Check if question skipped
+                $questionAnswered = array_key_exists($question_id, $answers_array);
+                if(!$questionAnswered){
+                    // Add to skip count
+                    $skipCount++;
+
+                    // Update userquiz data
+                    $data["skipped_questions_count"]++;
+                }
+
+                // Loop answer models to determine other property values
+                foreach($answers as $answerModel){
+                    // Get relavant properties
+                    $timesShown     = $answerModel->getTimesShown();
+                    $selectionCount = $answerModel->getSelectionCount();
+
+                    // Add to times shown
+                    $timesShown++;
+
+                    // Check if question was answered
+                    if($questionAnswered){
+                        // Question Answered
+                        // Check correct | incorrect
+                        if((int)$answers_array[$question_id] === $answerModel->getId()){
+                            // Add to selection count
+                            $selectionCount++;
+
+                            // Check correct
+                            if($answerModel->getIsCorrect() === 1){
+                                // Correct
+                                $correctCount++;
+
+                                // Update userquiz data
+                                $data["score"]++;
+                                $data["correct_answers_count"]++;
+
+                            } else {
+                                // Incorrect
+                                $incorrectCount++;
+
+                                // Update userquiz data
+                                $data["incorrect_answers_count"]++;
+                            }
+                        }
+                    }
+
+                    // Update Answers Properties
+                    $answerModel->setTimesShown($timesShown);
+                    $answerModel->setSelectionCount($selectionCount);
+                    $answerModel->setUpdatedAt(Utility::getCurrentTS());
+
+                    // Update Answer Record
+                    $answerResult = $this->updateAnswerRecord($answerModel);
+                    
+                    // TODO: Break loop if failure to update Answer
+                }
+
+                // Assign Properties
+                $questionModel->setTimesAsked($timesAsked);
+                $questionModel->setSkipCount($skipCount);
+                $questionModel->setCorrectAttemptsCount($correctCount);
+                $questionModel->setIncorrectAttemptsCount($incorrectCount);
+                $questionModel->setLastStatUpdateAt(Utility::getCurrentTS());
+                $questionModel->setLastPlayedAt(Utility::getCurrentTS());
+
+                // Update Question Record
+                $questionResult = $this->updateQuestionRecord($questionModel);
+                // TODO: Break loop if failure to update Question
+            }
+
+            // Check if quiz completed
+            $data["is_completed"] = (count($quiz_id_map) === count($answers_array)) ? 1 : 0;
+
+            // Loop completed: Return Success
+            return $data;
+        }
+
+        /**-------------------------------------------------------------------------*/
+        /**
+         * Load Question Model
+         * @param int $id
+         * @return QuestionModel
+         */
+        /**-------------------------------------------------------------------------*/
+        public function loadQuestion(int $id){
+            $model = $this->questionRepo->findById($id);
+            if(is_a($model, QuestionModel::class)){
+                return $model;
+            } else {
+                return NULL;
+            }
+        }
+
+        /**-------------------------------------------------------------------------*/
+        /**
+         * Load Answers from question Ids
+         */
+        /**-------------------------------------------------------------------------*/
+        public function loadAnswers(int $question_id){
+            return $this->answerRepo->findByForeignId("question_id", $question_id);
+        }
+        
+        /**-------------------------------------------------------------------------*/
+        /**
+         * Load Answer Model
+         * @param int $id
+         * @return QuestionModel
+         */
+        /**-------------------------------------------------------------------------*/
+        public function loadAnswer(int $id){
+            $model = $this->answerRepo->findById($id);
+            if(is_a($model, AnswerModel::class)){
+                return $model;
+            } else {
+                return NULL;
+            }
+        }
+
+        /**-------------------------------------------------------------------------*/
+        /**
+         * Update Question Record
+         * @param QuestionModel $model
+         * @return bool True on success
+         */
+        /**-------------------------------------------------------------------------*/
+        public function updateQuestionRecord(QuestionModel $model){
+            $result = $this->questionRepo->save($model);
+            if(is_a($result, QuestionModel::class)){
+                return true;
+            }
+            return false;
+        }
+
+        /**-------------------------------------------------------------------------*/
+        /**
+         * Update Answer Record
+         * @param AnswerModel $model
+         * @return bool True on success
+         */
+        /**-------------------------------------------------------------------------*/
+        public function updateAnswerRecord(AnswerModel $model){
+            $result = $this->answerRepo->save($model);
+            if(is_a($result, AnswerModel::class)){
+                return true;
+            }
+            return false;
+        }
+
+        /**-------------------------------------------------------------------------*/
+        /**
+         * Load UserQuiz
+         * 
+         * @param int $user_id
+         * @param int $quiz_id
+         * @return UserQuiz
+         */
+        /**-------------------------------------------------------------------------*/
+        public function loadUserQuiz(int $user_id, $quiz_id){
+            $results = $this->userQuizzesRepo->findBy([
+                "user_id"   => $user_id,
+                "quiz_id"   => $quiz_id
+            ]);
+
+            // Validate Results
+            if(!empty($results) && is_array($results) && count($results) === 1){
+                $model = $results[0];
+
+                // Validate model and return
+                return is_a($model, UserQuizModel::class) ? $model : NULL;
+            }
+        }
+
+        /**-------------------------------------------------------------------------*/
+        /**
+         * Load quiz
+         */
+        /**-------------------------------------------------------------------------*/
+        public function loadQuiz(int $quiz_id){
+            $model = $this->quizRepo->findById($quiz_id);
+            // Validate and return
+            return is_a($model, QuizModel::class) ? $model : NULL;
+        }
+
+        /**-------------------------------------------------------------------------*/
+        /**
+         * Update UserQuiz Record
+         */
+        /**-------------------------------------------------------------------------*/
+        public function updateUserQuizRecord(UserQuizModel $model){
+            $result = $this->userQuizzesRepo->save($model);
+            if(is_a($result, UserQuizModel::class)){
+                return true;
+            }
+            return false;
         }
     }
 
