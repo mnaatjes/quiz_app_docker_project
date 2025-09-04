@@ -1,6 +1,8 @@
 <?php
 
 namespace App\Middleware;
+
+use App\Utils\Utility;
 use mnaatjes\mvcFramework\HttpCore\HttpRequest;
 use mnaatjes\mvcFramework\HttpCore\HttpResponse;
 use mnaatjes\mvcFramework\SessionsCore\SessionManager;
@@ -36,13 +38,14 @@ use mnaatjes\mvcFramework\SessionsCore\SessionManager;
              *      -> Next()
              */
             if($this->session->has("user_id") && is_numeric($this->session->get("user_id"))){
+                // User Authenticated -> Proceed to original destination
                 $next();
             } else {
-                // Set error session 
-                $this->session->set("error", "Unknown User");
+                // Destroy Session
+                $this->session->destroy();
 
-                // Redirect
-                $res->redirect("/index.php/login");
+                // Redirect with error message
+                $res->redirect("/index.php/login?error=" . "100");
             }
         }
     }

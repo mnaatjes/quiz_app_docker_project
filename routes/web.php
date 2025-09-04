@@ -22,11 +22,21 @@
      * @see GET /login
      * @return void
      */
-    $router->get("/", function($req, $res) use($container){
-        // clear existing sessions
-        $container->get(SessionManager::class)->clear();
+    $router->get("/", function($req, $res, $params){
+        // Collect message data if present
+        $data = [];
+
+        if(isset($data["error"])){
+            switch ($params["error"]){
+                case '100':
+                    return $data["error"] = "Unknown User";
+                default:
+                    return $data["error"] = "Unknown Error";
+            }
+        }
+        
         // Render Landing Page
-        $res->render("login");
+        $res->render("login", $data);
     });
     /**
      * 

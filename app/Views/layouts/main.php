@@ -37,10 +37,6 @@ Utility::debugSession();
             </ul>
         </nav>
     </header>
-
-    <!-- User status navigation bar -->
-    <?php include 'user_nav.php'; ?>
-
     <!-- The main content of the page is injected here -->
     <main class="flex-grow">
         <?php echo $content; ?>

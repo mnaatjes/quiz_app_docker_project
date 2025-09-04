@@ -2,7 +2,7 @@
     // This partial should be included in your main layout file.
     // It assumes a session is active and checks for a 'user_id' to determine login status.
     // It also assumes a $user variable is available when logged in, containing user details.
-
+    var_dump($sessionData);
     $isLoggedIn = isset($_SESSION['user_id']);
     if ($isLoggedIn) {
         // In a real app, this $user object would likely be populated by a BaseController or middleware
